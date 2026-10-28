@@ -4,6 +4,7 @@
   "description": "SkyRoute Neo — Next-Gen Airline Reservation & Dijkstra Flight Optimizer",
   "main": "index.html",
   "scripts": {
+    "build": "echo 'Static assets ready'",
     "start": "npx -y serve -l 3000 .",
     "dev": "npx -y serve -l 3000 .",
     "server": "powershell -Command \"./build/airline_server.exe\""
