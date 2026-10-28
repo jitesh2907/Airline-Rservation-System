@@ -101,6 +101,9 @@ int main() {
     graph.addFlight("DEL", "BOM", "AI101", 4500.0);
     graph.addFlight("BOM", "BLR", "6E202", 3200.0);
     graph.addFlight("DEL", "BLR", "UK808", 8500.0);
+    graph.addFlight("BOM", "DEL", "AI102", 4500.0);
+    graph.addFlight("BLR", "BOM", "6E203", 3200.0);
+    graph.addFlight("BLR", "DEL", "UK809", 8500.0);
 
     // 1. Serve Frontend
     CROW_ROUTE(app, "/")([](const crow::request&, crow::response& res) {
@@ -163,6 +166,45 @@ int main() {
         resp[2]["arrival"] = "10:05 AM";
         resp[2]["duration"] = "2h 50m";
         resp[2]["aircraft"] = "Boeing 787-9 Dreamliner";
+
+        resp[3]["flight_id"] = "AI102";
+        resp[3]["airline"] = "Air India";
+        resp[3]["airline_code"] = "AI";
+        resp[3]["from"] = "BOM";
+        resp[3]["from_name"] = "Mumbai (BOM)";
+        resp[3]["to"] = "DEL";
+        resp[3]["to_name"] = "New Delhi (DEL)";
+        resp[3]["price"] = 4500.0;
+        resp[3]["departure"] = "06:30 PM";
+        resp[3]["arrival"] = "08:45 PM";
+        resp[3]["duration"] = "2h 15m";
+        resp[3]["aircraft"] = "Airbus A320neo";
+
+        resp[4]["flight_id"] = "6E203";
+        resp[4]["airline"] = "IndiGo";
+        resp[4]["airline_code"] = "6E";
+        resp[4]["from"] = "BLR";
+        resp[4]["from_name"] = "Bengaluru (BLR)";
+        resp[4]["to"] = "BOM";
+        resp[4]["to_name"] = "Mumbai (BOM)";
+        resp[4]["price"] = 3200.0;
+        resp[4]["departure"] = "04:15 PM";
+        resp[4]["arrival"] = "06:00 PM";
+        resp[4]["duration"] = "1h 45m";
+        resp[4]["aircraft"] = "Airbus A321neo";
+
+        resp[5]["flight_id"] = "UK809";
+        resp[5]["airline"] = "Vistara";
+        resp[5]["airline_code"] = "UK";
+        resp[5]["from"] = "BLR";
+        resp[5]["from_name"] = "Bengaluru (BLR)";
+        resp[5]["to"] = "DEL";
+        resp[5]["to_name"] = "New Delhi (DEL)";
+        resp[5]["price"] = 8500.0;
+        resp[5]["departure"] = "11:15 AM";
+        resp[5]["arrival"] = "02:05 PM";
+        resp[5]["duration"] = "2h 50m";
+        resp[5]["aircraft"] = "Boeing 787-9 Dreamliner";
 
         crow::response res(200, resp);
         res.add_header("Access-Control-Allow-Origin", "*");
@@ -343,7 +385,7 @@ int main() {
     });
 
     std::cout << "Starting server on port 18080...\n";
-    app.loglevel(crow::LogLevel::Debug);
+    app.loglevel(crow::LogLevel::Warning);
     app.port(18080).run();
 
     sqlite3_close(db);

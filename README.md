@@ -1,6 +1,11 @@
 # SkyRoute Neo — Airline Reservation System & Dijkstra Flight Optimizer
 
+[![Live Demo](https://img.shields.io/badge/Live%20Website-Demo%20Online-38bdf8?style=for-the-badge&logo=google-chrome&logoColor=white)](https://jitesh-ss.github.io/Airline-Rservation-System/)
+[![GitHub Actions Pages](https://img.shields.io/badge/GitHub%20Pages-Automated%20CI%2FCD-10b981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/jitesh-ss/Airline-Rservation-System/actions)
+
 SkyRoute Neo is a high-performance airline reservation and routing optimization platform powered by **C++17**, **Crow Microframework**, **SQLite3**, and a state-of-the-art interactive web frontend.
+
+> **Live Web Application**: [https://jitesh-ss.github.io/Airline-Rservation-System/](https://jitesh-ss.github.io/Airline-Rservation-System/)
 
 ---
 
@@ -79,27 +84,29 @@ graph TD
 
 ---
 
-## Build & Execution Instructions
+## 🚀 Running the Live Website
 
-### Prerequisites
-- C++17 compiler (GCC / MinGW / Clang)
-- CMake 3.15+
-- SQLite3 development libraries (`libsqlite3`)
-- Asio standalone headers
+### Option 1: Live Online (GitHub Pages / Vercel)
+The project is configured for automated zero-config deployment:
+- **GitHub Pages**: Push to `main` branch. The automated workflow in [`.github/workflows/deploy.yml`](file:///.github/workflows/deploy.yml) automatically deploys to:
+  `https://jitesh-ss.github.io/Airline-Rservation-System/`
+- **Vercel / Netlify**: Run `npx vercel` or import this repository on Vercel.
 
-### Build with CMake
+### Option 2: Instant Local Web Server (Node.js)
 ```bash
-# 1. Configure build directory
-cmake -B build -G "MinGW Makefiles"
-
-# 2. Compile the executable
-cmake --build build
+npm start
+# Opens interactive web app at http://localhost:3000/
 ```
 
-### Run the Server
+### Option 3: Full C++17 Crow + SQLite Backend
 ```bash
+# 1. Configure and compile with CMake
+cmake -B build -G "MinGW Makefiles"
+cmake --build build
+
+# 2. Run the C++ Crow server (Port 18080)
 # Windows
-build\airline_server.exe
+.\build\airline_server.exe
 
 # Linux / macOS
 ./build/airline_server

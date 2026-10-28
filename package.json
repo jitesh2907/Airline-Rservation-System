@@ -1,0 +1,20 @@
+{
+  "name": "skyroute-neo-airline-reservation",
+  "version": "2.0.0",
+  "description": "SkyRoute Neo — Next-Gen Airline Reservation & Dijkstra Flight Optimizer",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y serve -l 3000 .",
+    "dev": "npx -y serve -l 3000 .",
+    "server": "powershell -Command \"./build/airline_server.exe\""
+  },
+  "keywords": [
+    "airline-reservation",
+    "dijkstra-algorithm",
+    "flight-optimizer",
+    "cpp17-crow",
+    "sqlite3"
+  ],
+  "author": "Jitesh.M & Shashanka.B",
+  "license": "MIT"
+}

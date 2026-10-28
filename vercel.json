@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

@@ -233,7 +233,7 @@
     .hero-bg {
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(90deg, rgba(6, 9, 19, 0.95) 0%, rgba(6, 9, 19, 0.65) 50%, rgba(6, 9, 19, 0.4) 100%), url('/hero.jpg');
+      background-image: linear-gradient(90deg, rgba(6, 9, 19, 0.95) 0%, rgba(6, 9, 19, 0.65) 50%, rgba(6, 9, 19, 0.4) 100%), url('hero.jpg');
       background-size: cover;
       background-position: center right;
       z-index: 1;
@@ -1381,6 +1381,9 @@
                 <option value="AI101">AI101 — Air India (DEL ➔ BOM | Airbus A320neo)</option>
                 <option value="6E202">6E202 — IndiGo (BOM ➔ BLR | Airbus A321neo)</option>
                 <option value="UK808">UK808 — Vistara (DEL ➔ BLR | Boeing 787-9)</option>
+                <option value="AI102">AI102 — Air India (BOM ➔ DEL | Airbus A320neo)</option>
+                <option value="6E203">6E203 — IndiGo (BLR ➔ BOM | Airbus A321neo)</option>
+                <option value="UK809">UK809 — Vistara (BLR ➔ DEL | Boeing 787-9)</option>
               </select>
             </div>
             <button class="btn-action-sm" onclick="loadSeats()" style="margin-top: 1.2rem;">
@@ -1756,7 +1759,7 @@
     let currentFlight = 'AI101';
     let audioCtx = null;
 
-    // Flight Catalog Metadata
+    // Flight Catalog Metadata (Bidirectional Indian Metro Hubs)
     const FLIGHTS_METADATA = {
       'AI101': {
         airline: 'Air India',
@@ -1802,8 +1805,160 @@
         basePrice: 8500,
         gate: '22C (T3)',
         rows: 8
+      },
+      'AI102': {
+        airline: 'Air India',
+        code: 'AI',
+        from: 'BOM',
+        fromName: 'Mumbai (BOM)',
+        to: 'DEL',
+        toName: 'New Delhi (DEL)',
+        departure: '06:30 PM',
+        arrival: '08:45 PM',
+        duration: '2h 15m',
+        aircraft: 'Airbus A320neo',
+        basePrice: 4500,
+        gate: '12A (T2)',
+        rows: 6
+      },
+      '6E203': {
+        airline: 'IndiGo',
+        code: '6E',
+        from: 'BLR',
+        fromName: 'Bengaluru (BLR)',
+        to: 'BOM',
+        toName: 'Mumbai (BOM)',
+        departure: '04:15 PM',
+        arrival: '06:00 PM',
+        duration: '1h 45m',
+        aircraft: 'Airbus A321neo',
+        basePrice: 3200,
+        gate: '04B (T1)',
+        rows: 7
+      },
+      'UK809': {
+        airline: 'Vistara',
+        code: 'UK',
+        from: 'BLR',
+        fromName: 'Bengaluru (BLR)',
+        to: 'DEL',
+        toName: 'New Delhi (DEL)',
+        departure: '11:15 AM',
+        arrival: '02:05 PM',
+        duration: '2h 50m',
+        aircraft: 'Boeing 787-9 Dreamliner',
+        basePrice: 8500,
+        gate: '18A (T2)',
+        rows: 8
       }
     };
+
+    // --- In-Browser Dijkstra Shortest Path Flight Optimizer ---
+    class ClientFlightGraph {
+      constructor() {
+        this.adj = {
+          'DEL': [
+            { to: 'BOM', flightId: 'AI101', price: 4500 },
+            { to: 'BLR', flightId: 'UK808', price: 8500 }
+          ],
+          'BOM': [
+            { to: 'BLR', flightId: '6E202', price: 3200 },
+            { to: 'DEL', flightId: 'AI102', price: 4500 }
+          ],
+          'BLR': [
+            { to: 'DEL', flightId: 'UK809', price: 8500 },
+            { to: 'BOM', flightId: '6E203', price: 3200 }
+          ]
+        };
+      }
+
+      findCheapestRoute(start, target) {
+        if (start === target) return { total_cost: 0, path: [start], flights: [] };
+        const dist = {};
+        const parent = {};
+        const pq = [{ cost: 0, u: start }];
+        dist[start] = 0;
+
+        while (pq.length > 0) {
+          pq.sort((a, b) => a.cost - b.cost);
+          const { cost, u } = pq.shift();
+
+          if (u === target) break;
+          if (cost > dist[u]) continue;
+
+          const neighbors = this.adj[u] || [];
+          for (const edge of neighbors) {
+            const newCost = cost + edge.price;
+            if (dist[edge.to] === undefined || newCost < dist[edge.to]) {
+              dist[edge.to] = newCost;
+              parent[edge.to] = { from: u, flightId: edge.flightId };
+              pq.push({ cost: newCost, u: edge.to });
+            }
+          }
+        }
+
+        if (dist[target] === undefined) return { total_cost: -1, path: [], flights: [] };
+
+        const path = [];
+        const flights = [];
+        let curr = target;
+        while (curr !== start) {
+          path.push(curr);
+          flights.push(parent[curr].flightId);
+          curr = parent[curr].from;
+        }
+        path.push(start);
+        path.reverse();
+        flights.reverse();
+        return { total_cost: dist[target], path, flights };
+      }
+    }
+    const clientGraph = new ClientFlightGraph();
+
+    // --- Persistent Local Storage Ledger for Live Web Deployment ---
+    const STORAGE_KEY_BOOKINGS = 'skyroute_neo_bookings_v1';
+
+    function getLocalBookings() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_BOOKINGS);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {
+        console.warn('Storage read error', e);
+      }
+      const initialSeed = [
+        {
+          booking_id: 1042,
+          flight_id: 'AI101',
+          passenger_name: 'Rohit Sharma',
+          seat_number: '1B',
+          created_at: 'Today, 08:30 AM'
+        },
+        {
+          booking_id: 1043,
+          flight_id: '6E202',
+          passenger_name: 'Priya Patel',
+          seat_number: '3C',
+          created_at: 'Today, 09:15 AM'
+        },
+        {
+          booking_id: 1044,
+          flight_id: 'UK808',
+          passenger_name: 'Ananya Verma',
+          seat_number: '2A',
+          created_at: 'Today, 10:00 AM'
+        }
+      ];
+      saveLocalBookings(initialSeed);
+      return initialSeed;
+    }
+
+    function saveLocalBookings(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(list));
+      } catch (e) {
+        console.warn('Storage write error', e);
+      }
+    }
 
     // --- Web Audio Synthesizer ---
     function initAudio() {
@@ -1899,15 +2054,19 @@
         if (res.ok) {
           isServerLive = true;
           dot.className = 'status-dot';
+          dot.style.background = '#10b981';
+          dot.style.boxShadow = '0 0 10px #10b981';
           text.innerText = `Crow C++ Engine: ${latency}ms`;
-        } else {
-          throw new Error('Non-200');
+          return;
         }
       } catch (err) {
-        isServerLive = false;
-        dot.className = 'status-dot error';
-        text.innerText = 'Engine: Offline (Mock Mode)';
+        // Fallback to Edge Live Web Mode
       }
+      isServerLive = false;
+      dot.className = 'status-dot';
+      dot.style.background = '#38bdf8';
+      dot.style.boxShadow = '0 0 10px #38bdf8';
+      text.innerText = 'SkyRoute Edge Engine (Active)';
     }
 
     // --- Tab Switching ---
@@ -1978,16 +2137,11 @@
           routeData = await res.json();
           if (routeData.error) throw new Error(routeData.error);
         } else {
-          // Resilient client-side fallback
-          await new Promise(r => setTimeout(r, 350));
-          if (from === 'DEL' && to === 'BLR') {
-            routeData = { path: ['DEL', 'BOM', 'BLR'], flights: ['AI101', '6E202'], total_cost: 7700 };
-          } else if (from === 'DEL' && to === 'BOM') {
-            routeData = { path: ['DEL', 'BOM'], flights: ['AI101'], total_cost: 4500 };
-          } else if (from === 'BOM' && to === 'BLR') {
-            routeData = { path: ['BOM', 'BLR'], flights: ['6E202'], total_cost: 3200 };
-          } else {
-            routeData = { path: [from, to], flights: ['AI101'], total_cost: 6500 };
+          // In-Browser Dijkstra Engine (Active Edge Web Mode)
+          await new Promise(r => setTimeout(r, 200));
+          routeData = clientGraph.findCheapestRoute(from, to);
+          if (routeData.total_cost < 0) {
+            throw new Error(`No scheduled flight connections between ${from} and ${to}.`);
           }
         }
       } catch (err) {
@@ -2114,9 +2268,21 @@
           const res = await fetch(`${API_BASE}/api/flights/${flightId}/seats`);
           const data = await res.json();
           occupiedSeats = new Set(data.occupied_seats || []);
+        } else {
+          const localBookings = getLocalBookings();
+          occupiedSeats = new Set(
+            localBookings
+              .filter(b => b.flight_id === flightId)
+              .map(b => b.seat_number)
+          );
         }
       } catch (err) {
-        console.warn('Could not query occupied seats, using memory', err);
+        const localBookings = getLocalBookings();
+        occupiedSeats = new Set(
+          localBookings
+            .filter(b => b.flight_id === flightId)
+            .map(b => b.seat_number)
+        );
       }
 
       const cols = ['A', 'B', 'C', 'D'];
@@ -2252,13 +2418,29 @@
           }
           bookingResult = data;
         } else {
-          // Simulation mode
-          await new Promise(r => setTimeout(r, 400));
+          // Edge Live Web Mode: Real-time collision detection & local persistence
+          await new Promise(r => setTimeout(r, 200));
+          const localBookings = getLocalBookings();
+          const collision = localBookings.some(b => b.flight_id === currentFlight && b.seat_number === selectedSeat);
+          if (collision) {
+            throw new Error(`Seat ${selectedSeat} is already booked on flight ${currentFlight}!`);
+          }
+          const newBookingId = Math.floor(1000 + Math.random() * 9000);
+          const newRecord = {
+            booking_id: newBookingId,
+            flight_id: currentFlight,
+            passenger_name: passengerName,
+            seat_number: selectedSeat,
+            created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          localBookings.unshift(newRecord);
+          saveLocalBookings(localBookings);
           bookingResult = {
             status: 'CONFIRMED',
             flight_id: currentFlight,
             passenger: passengerName,
-            seat: selectedSeat
+            seat: selectedSeat,
+            booking_id: newBookingId
           };
         }
 
@@ -2302,9 +2484,11 @@
         if (isServerLive) {
           const res = await fetch(`${API_BASE}/api/bookings`);
           bookings = await res.json();
+        } else {
+          bookings = getLocalBookings();
         }
       } catch (e) {
-        console.warn('Failed to load bookings list', e);
+        bookings = getLocalBookings();
       }
 
       document.getElementById('bookingsCountBadge').innerText = bookings.length;
@@ -2344,6 +2528,9 @@
         if (isServerLive) {
           const res = await fetch(`${API_BASE}/api/bookings/${bookingId}`, { method: 'DELETE' });
           if (!res.ok) throw new Error('Failed to cancel');
+        } else {
+          const localBookings = getLocalBookings().filter(b => b.booking_id !== bookingId);
+          saveLocalBookings(localBookings);
         }
         showToast(`Booking #${bookingId} successfully cancelled. Seat released!`, 'success');
         await loadBookingsList();
