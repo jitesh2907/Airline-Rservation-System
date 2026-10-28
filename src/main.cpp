@@ -87,6 +87,12 @@ void initDatabase(sqlite3* db) {
     }
 }
 
+inline void add_cors(crow::response& res) {
+    res.add_header("Access-Control-Allow-Origin", "*");
+    res.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    res.add_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+}
+
 int main() {
     sqlite3* db;
     if (sqlite3_open("airline.db", &db)) {
@@ -116,10 +122,25 @@ int main() {
         res.end();
     });
 
+    // Preflight OPTIONS handlers
+    CROW_ROUTE(app, "/api/<path>").methods(crow::HTTPMethod::Options)
+    ([](std::string) {
+        crow::response res(204);
+        add_cors(res);
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/bookings/<int>").methods(crow::HTTPMethod::Options)
+    ([](int) {
+        crow::response res(204);
+        add_cors(res);
+        return res;
+    });
+
     // 2. Health Check
     CROW_ROUTE(app, "/api/health")([]() {
-        crow::response res(200, "{\"status\": \"running\"}");
-        res.add_header("Access-Control-Allow-Origin", "*");
+        crow::response res(200, "{\"status\": \"running\", \"engine\": \"Crow C++17\", \"port\": 18080}");
+        add_cors(res);
         return res;
     });
 
@@ -207,7 +228,7 @@ int main() {
         resp[5]["aircraft"] = "Boeing 787-9 Dreamliner";
 
         crow::response res(200, resp);
-        res.add_header("Access-Control-Allow-Origin", "*");
+        add_cors(res);
         return res;
     });
 
@@ -219,14 +240,14 @@ int main() {
 
         if (!from || !to) {
             crow::response res(400, "{\"error\": \"Provide both 'from' and 'to' parameters.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
         RouteResult res_route = graph.findCheapestRoute(from, to);
         if (res_route.total_cost < 0) {
             crow::response res(404, "{\"error\": \"No route found.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -236,7 +257,7 @@ int main() {
         for (size_t i = 0; i < res_route.flight_ids.size(); ++i) resp["flights"][i] = res_route.flight_ids[i];
         
         crow::response res(200, resp);
-        res.add_header("Access-Control-Allow-Origin", "*");
+        add_cors(res);
         return res;
     });
 
@@ -248,7 +269,7 @@ int main() {
 
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
             crow::response res(500, "{\"error\": \"Failed to query seats.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -267,7 +288,7 @@ int main() {
             resp["occupied_seats"][i] = occupied[i];
         }
         crow::response res(200, resp);
-        res.add_header("Access-Control-Allow-Origin", "*");
+        add_cors(res);
         return res;
     });
 
@@ -279,7 +300,7 @@ int main() {
 
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
             crow::response res(500, "{\"error\": \"Failed to query bookings.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -300,7 +321,7 @@ int main() {
         sqlite3_finalize(stmt);
 
         crow::response res(200, resp);
-        res.add_header("Access-Control-Allow-Origin", "*");
+        add_cors(res);
         return res;
     });
 
@@ -312,7 +333,7 @@ int main() {
 
         if (sqlite3_prepare_v2(db, del_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
             crow::response res(500, "{\"error\": \"Database error.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -322,7 +343,7 @@ int main() {
 
         if (rc != SQLITE_DONE) {
             crow::response res(500, "{\"error\": \"Failed to delete booking.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -330,7 +351,7 @@ int main() {
         resp["status"] = "CANCELLED";
         resp["booking_id"] = booking_id;
         crow::response res(200, resp);
-        res.add_header("Access-Control-Allow-Origin", "*");
+        add_cors(res);
         return res;
     });
 
@@ -340,7 +361,7 @@ int main() {
         auto body = crow::json::load(req.body);
         if (!body || !body.has("flight_id") || !body.has("passenger_name") || !body.has("seat_number")) {
             crow::response res(400, "{\"error\": \"Invalid JSON payload.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -353,7 +374,7 @@ int main() {
 
         if (sqlite3_prepare_v2(db, insert_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
             crow::response res(500, "{\"error\": \"Database error.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -366,11 +387,11 @@ int main() {
 
         if (rc == SQLITE_CONSTRAINT) {
             crow::response res(409, "{\"error\": \"Seat " + seat + " is already booked on flight " + flight + "!\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         } else if (rc != SQLITE_DONE) {
             crow::response res(500, "{\"error\": \"Failed to complete transaction.\"}");
-            res.add_header("Access-Control-Allow-Origin", "*");
+            add_cors(res);
             return res;
         }
 
@@ -380,7 +401,7 @@ int main() {
         resp["passenger"] = name;
         resp["seat"] = seat;
         crow::response res(201, resp);
-        res.add_header("Access-Control-Allow-Origin", "*");
+        add_cors(res);
         return res;
     });
 

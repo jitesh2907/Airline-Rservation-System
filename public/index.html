@@ -6,50 +6,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Next-Generation Airline Reservation System powered by C++ Crow, Dijkstra Route Optimization, and SQLite3 collision-safe booking.">
 
-  <!-- Google Fonts: Blueberry Cream Soda Typography -->
+  <!-- Google Fonts: Aero Executive Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* -------------------------------------------------------------
-       BLUEBERRY CREAM SODA DESIGN TOKENS & CSS VARIABLES
+       CRIMSON & PEARL AERO EXECUTIVE DESIGN TOKENS
        ------------------------------------------------------------- */
     :root {
-      --bg-deep: #0c081a;
-      --bg-surface: #140e2b;
-      --bg-card: rgba(28, 18, 58, 0.78);
-      --bg-card-hover: rgba(42, 28, 84, 0.88);
-      --bg-glass: rgba(26, 17, 54, 0.68);
+      /* Background Canvas */
+      --bg-deep: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.9);
       
-      --accent-blueberry: #8b5cf6;
-      --accent-blueberry-glow: rgba(139, 92, 246, 0.45);
-      --accent-soda: #67e8f9;
-      --accent-soda-glow: rgba(103, 232, 249, 0.45);
-      --accent-cyan: #38bdf8;
-      --accent-cyan-glow: rgba(56, 189, 248, 0.4);
-      --accent-cream: #fde68a;
-      --accent-cream-glow: rgba(253, 230, 138, 0.35);
-      --accent-indigo: #6366f1;
-      --accent-purple: #c084fc;
-      --accent-blush: #f472b6;
-      --accent-gold: #fbbf24;
-      --accent-gold-glow: rgba(251, 191, 36, 0.35);
+      /* Signature Crimson, Ruby & Scarlet Reds */
+      --accent-red: #dc2626;
+      --accent-red-hover: #b91c1c;
+      --accent-red-glow: rgba(220, 38, 38, 0.3);
+      --accent-crimson: #e11d48;
+      --accent-crimson-glow: rgba(225, 29, 72, 0.28);
+      --accent-rose: #f43f5e;
+      --accent-rose-soft: #fee2e2;
       
-      --seat-avail: #221844;
-      --seat-avail-hover: #37256d;
-      --seat-selected: #06b6d4;
-      --seat-selected-glow: rgba(6, 182, 212, 0.55);
-      --seat-booked: #7f1d1d;
-      --seat-first: #f59e0b;
-      --seat-border: #44327a;
+      /* Supporting Accents: Amber Gold, Aviation Slate, Emerald */
+      --accent-gold: #f59e0b;
+      --accent-gold-glow: rgba(245, 158, 11, 0.35);
+      --accent-gold-soft: #fef3c7;
+      --accent-emerald: #10b981;
+      --accent-slate: #0f172a;
       
-      --text-main: #fdfbf7;
-      --text-cream: #fef3c7;
-      --text-muted: #c4b5fd;
-      --text-dim: #9382b6;
-      --border-subtle: rgba(167, 139, 250, 0.22);
-      --border-glow: rgba(192, 132, 252, 0.45);
+      /* Aircraft Cabin Seats */
+      --seat-avail: #ffffff;
+      --seat-avail-hover: #fef2f2;
+      --seat-selected: #dc2626;
+      --seat-selected-glow: rgba(220, 38, 38, 0.5);
+      --seat-booked: #fee2e2;
+      --seat-first: #fef3c7;
+      --seat-border: #cbd5e1;
+      
+      /* Typography & High-Contrast Elements */
+      --text-main: #0f172a;
+      --text-heading: #090d16;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --border-subtle: #e2e8f0;
+      --border-glow: rgba(220, 38, 38, 0.35);
       
       --radius-sm: 10px;
       --radius-md: 16px;
@@ -57,11 +62,11 @@
       --radius-full: 9999px;
       
       --font-body: 'Plus Jakarta Sans', sans-serif;
-      --font-heading: 'Outfit', 'Fredoka', sans-serif;
+      --font-heading: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       
-      --shadow-card: 0 14px 35px -10px rgba(6, 4, 15, 0.7), 0 0 0 1px var(--border-subtle);
-      --shadow-glow: 0 0 30px -4px var(--accent-blueberry-glow);
+      --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 0 0 1px #e2e8f0;
+      --shadow-glow: 0 0 30px -4px var(--accent-red-glow);
     }
 
     * {
@@ -73,10 +78,10 @@
     body {
       background-color: var(--bg-deep);
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
-        radial-gradient(circle at 85% 20%, rgba(103, 232, 249, 0.16) 0%, transparent 45%),
-        radial-gradient(circle at 50% 85%, rgba(253, 230, 138, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(244, 114, 182, 0.12) 0%, transparent 40%);
+        radial-gradient(circle at 10% 12%, rgba(220, 38, 38, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 18%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 50% 88%, rgba(225, 29, 72, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(220, 38, 38, 0.03) 0%, transparent 40%);
       background-attachment: fixed;
       color: var(--text-main);
       font-family: var(--font-body);
@@ -88,25 +93,25 @@
       position: relative;
     }
 
-    /* Ambient Cream Soda Floating Fizz */
-    .soda-fizz-bg {
+    /* Ambient Aeronautical Waypoint Sparks */
+    .aero-ambient-bg {
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
     }
-    .soda-bubble {
+    .aero-spark {
       position: absolute;
-      bottom: -40px;
-      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.85), rgba(192, 132, 252, 0.3) 50%, rgba(103, 232, 249, 0.4) 100%);
-      border: 1px solid rgba(254, 243, 199, 0.5);
+      bottom: -30px;
+      background: radial-gradient(circle at 35% 35%, #ffffff, rgba(220, 38, 38, 0.45) 55%, rgba(245, 158, 11, 0.25) 100%);
+      border: 1px solid rgba(220, 38, 38, 0.25);
       border-radius: 50%;
-      box-shadow: 0 0 10px rgba(103, 232, 249, 0.3), inset 0 0 6px rgba(255, 255, 255, 0.6);
-      animation: floatBubble linear infinite;
+      box-shadow: 0 0 12px rgba(220, 38, 38, 0.35);
+      animation: floatSpark linear infinite;
     }
-    @keyframes floatBubble {
-      0% { transform: translateY(0) scale(0.7); opacity: 0; }
+    @keyframes floatSpark {
+      0% { transform: translateY(0) scale(0.65); opacity: 0; }
       15% { opacity: 0.55; }
       80% { opacity: 0.55; }
       100% { transform: translateY(-110vh) scale(1.15); opacity: 0; }
@@ -119,7 +124,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(14, 9, 30, 0.85);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-subtle);
       padding: 0.85rem 2rem;
@@ -127,6 +132,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 1.5rem;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
     }
 
     .brand {
@@ -141,11 +147,11 @@
       width: 44px;
       height: 44px;
       border-radius: 14px;
-      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      background: linear-gradient(135deg, #e11d48 0%, #dc2626 50%, #b91c1c 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px var(--accent-blueberry-glow);
+      box-shadow: 0 4px 18px rgba(220, 38, 38, 0.35);
       transition: transform 0.3s ease;
     }
     .brand:hover .brand-logo-glow {
@@ -157,46 +163,50 @@
       font-size: 1.35rem;
       font-weight: 800;
       letter-spacing: -0.02em;
-      background: linear-gradient(90deg, #fffbeb 0%, #fde68a 35%, #c084fc 70%, #67e8f9 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #0f172a;
       display: flex;
       align-items: center;
       gap: 0.4rem;
     }
 
+    .brand-title .brand-accent {
+      color: var(--accent-red);
+      font-weight: 400;
+    }
+
     .brand-badge {
       font-size: 0.65rem;
       font-family: var(--font-mono);
-      background: rgba(139, 92, 246, 0.18);
-      color: var(--accent-cream);
-      border: 1px solid rgba(253, 230, 138, 0.35);
+      background: #fef2f2;
+      color: var(--accent-red);
+      border: 1px solid rgba(220, 38, 38, 0.3);
       padding: 0.15rem 0.55rem;
       border-radius: var(--radius-full);
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      -webkit-text-fill-color: var(--accent-cream);
     }
 
     /* System Telemetry Pill */
     .telemetry-bar {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .status-pill {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(28, 18, 58, 0.7);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       padding: 0.35rem 0.85rem;
       border-radius: var(--radius-full);
       font-size: 0.8rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
 
     .clickable-pill {
@@ -205,10 +215,11 @@
       transition: all 0.2s ease;
     }
     .clickable-pill:hover {
-      background: rgba(42, 28, 84, 0.95);
-      border-color: var(--accent-blueberry);
+      background: #fef2f2;
+      border-color: var(--accent-red);
+      color: var(--accent-red);
       transform: translateY(-1px);
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35);
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.18);
     }
 
     .status-dot {
@@ -237,7 +248,7 @@
     }
 
     .icon-btn {
-      background: rgba(42, 28, 84, 0.6);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       width: 38px;
@@ -248,16 +259,18 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
     .icon-btn:hover {
-      background: rgba(139, 92, 246, 0.2);
-      border-color: var(--accent-blueberry);
-      color: var(--text-cream);
+      background: #fef2f2;
+      border-color: var(--accent-red);
+      color: var(--accent-red);
       transform: translateY(-1px);
     }
     .icon-btn.active {
-      color: var(--accent-soda);
-      border-color: var(--accent-soda);
+      color: var(--accent-red);
+      border-color: var(--accent-red);
+      background: #fef2f2;
     }
 
     /* -------------------------------------------------------------
@@ -269,17 +282,19 @@
       border-radius: var(--radius-lg);
       overflow: hidden;
       border: 1px solid var(--border-subtle);
-      min-height: 220px;
+      min-height: 230px;
       display: flex;
       align-items: center;
-      background: #110c26;
+      background: #ffffff;
       box-shadow: var(--shadow-card);
     }
 
     .hero-bg {
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(90deg, rgba(12, 8, 26, 0.95) 0%, rgba(28, 18, 58, 0.75) 50%, rgba(14, 9, 30, 0.45) 100%), url('hero.jpg');
+      background-image: 
+        linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.88) 45%, rgba(255, 255, 255, 0.4) 100%), 
+        url('hero.jpg');
       background-size: cover;
       background-position: center right;
       z-index: 1;
@@ -289,7 +304,7 @@
       position: relative;
       z-index: 2;
       padding: 2.2rem 3rem;
-      max-width: 650px;
+      max-width: 660px;
     }
 
     .hero-tagline {
@@ -300,34 +315,35 @@
       font-family: var(--font-mono);
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: var(--accent-cream);
-      background: rgba(139, 92, 246, 0.18);
-      border: 1px solid rgba(253, 230, 138, 0.3);
-      padding: 0.3rem 0.8rem;
+      color: var(--accent-red);
+      background: #fef2f2;
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      padding: 0.3rem 0.85rem;
       border-radius: var(--radius-full);
       margin-bottom: 0.75rem;
+      font-weight: 700;
     }
 
     .hero-title {
       font-family: var(--font-heading);
-      font-size: 2.3rem;
+      font-size: 2.35rem;
       font-weight: 800;
       line-height: 1.15;
       letter-spacing: -0.03em;
-      margin-bottom: 0.6rem;
-      color: var(--text-main);
+      margin-bottom: 0.65rem;
+      color: #0f172a;
     }
 
     .hero-title span {
-      background: linear-gradient(90deg, #fde68a, #c084fc, #67e8f9);
+      background: linear-gradient(135deg, #e11d48 0%, #dc2626 50%, #f59e0b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-desc {
-      color: var(--text-muted);
+      color: #475569;
       font-size: 0.95rem;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     /* -------------------------------------------------------------
@@ -342,24 +358,23 @@
     }
 
     .tabs-container {
-      background: rgba(26, 17, 54, 0.85);
-      backdrop-filter: blur(12px);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-full);
       padding: 0.35rem;
       display: inline-flex;
       gap: 0.4rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
     }
 
     .tab-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 0.6rem 1.4rem;
+      padding: 0.65rem 1.45rem;
       border-radius: var(--radius-full);
       font-family: var(--font-heading);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.95rem;
       cursor: pointer;
       display: flex;
@@ -368,21 +383,27 @@
       transition: all 0.25s ease;
     }
     .tab-btn:hover {
-      color: var(--text-cream);
+      color: var(--accent-red);
+      background: #fef2f2;
     }
     .tab-btn.active {
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      background: linear-gradient(135deg, #e11d48 0%, #dc2626 50%, #b91c1c 100%);
       color: #ffffff;
-      box-shadow: 0 4px 18px rgba(124, 58, 237, 0.5);
+      box-shadow: 0 4px 18px rgba(220, 38, 38, 0.35);
     }
 
     .tab-count-badge {
-      background: rgba(253, 230, 138, 0.25);
-      color: var(--text-cream);
+      background: #fee2e2;
+      color: var(--accent-red);
       font-size: 0.7rem;
       font-family: var(--font-mono);
-      padding: 0.1rem 0.45rem;
+      padding: 0.1rem 0.5rem;
       border-radius: var(--radius-full);
+      font-weight: 800;
+    }
+    .tab-btn.active .tab-count-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
     }
 
     /* -------------------------------------------------------------
@@ -416,16 +437,16 @@
        ------------------------------------------------------------- */
     .card {
       background: var(--bg-card);
-      backdrop-filter: blur(16px);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
       padding: 1.8rem;
       box-shadow: var(--shadow-card);
       transition: all 0.3s ease;
+      position: relative;
     }
     .card:hover {
-      border-color: rgba(192, 132, 252, 0.45);
-      box-shadow: 0 16px 40px -10px rgba(6, 4, 15, 0.8), 0 0 25px -5px rgba(139, 92, 246, 0.25);
+      border-color: rgba(220, 38, 38, 0.3);
+      box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.08), 0 0 20px -5px rgba(220, 38, 38, 0.1);
     }
 
     .card-header {
@@ -440,7 +461,7 @@
     .card-title {
       font-family: var(--font-heading);
       font-size: 1.25rem;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--text-main);
       display: flex;
       align-items: center;
@@ -484,8 +505,8 @@
     label {
       display: block;
       font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-weight: 700;
+      color: #475569;
       margin-bottom: 0.45rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -493,27 +514,28 @@
 
     select, input[type="text"], input[type="date"] {
       width: 100%;
-      background: #110d24;
-      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
       border-radius: var(--radius-sm);
       padding: 0.85rem 1rem;
       color: var(--text-main);
       font-family: var(--font-body);
       font-size: 0.95rem;
       transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
 
     select:focus, input:focus {
       outline: none;
-      border-color: var(--accent-blueberry);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
     }
 
     .swap-btn {
       margin-top: 1.5rem;
-      background: rgba(42, 28, 84, 0.8);
-      border: 1px solid var(--border-subtle);
-      color: var(--accent-soda);
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      color: var(--accent-red);
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -522,17 +544,19 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
     }
     .swap-btn:hover {
-      background: var(--accent-blueberry);
+      background: var(--accent-red);
       color: #ffffff;
       transform: rotate(180deg) scale(1.1);
-      box-shadow: 0 0 15px var(--accent-blueberry-glow);
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.35);
+      border-color: var(--accent-red);
     }
 
     .btn-primary {
       width: 100%;
-      background: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #06b6d4 100%);
+      background: linear-gradient(135deg, #e11d48 0%, #dc2626 50%, #b91c1c 100%);
       color: #ffffff;
       border: none;
       padding: 1rem 1.5rem;
@@ -546,13 +570,13 @@
       justify-content: center;
       gap: 0.6rem;
       transition: all 0.3s ease;
-      box-shadow: 0 6px 22px rgba(124, 58, 237, 0.4);
+      box-shadow: 0 6px 22px rgba(220, 38, 38, 0.35);
       margin-top: 0.5rem;
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(124, 58, 237, 0.6);
-      filter: brightness(1.12);
+      box-shadow: 0 8px 28px rgba(220, 38, 38, 0.45);
+      filter: brightness(1.08);
     }
     .btn-primary:active {
       transform: translateY(0);
@@ -560,13 +584,13 @@
 
     /* Dijkstra Result Display */
     .dijkstra-result-card {
-      background: linear-gradient(145deg, rgba(28, 18, 58, 0.95), rgba(16, 11, 36, 0.95));
-      border: 1px solid rgba(167, 139, 250, 0.35);
+      background: #ffffff;
+      border: 1.5px solid #fee2e2;
       border-radius: var(--radius-lg);
       padding: 1.6rem;
       position: relative;
       overflow: hidden;
-      box-shadow: var(--shadow-glow);
+      box-shadow: 0 10px 30px -5px rgba(220, 38, 38, 0.08), 0 0 0 1px #fee2e2;
     }
 
     .dijkstra-result-card::before {
@@ -575,22 +599,22 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #c084fc, #67e8f9, #fde68a);
+      height: 4px;
+      background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #f59e0b 100%);
     }
 
     .route-telemetry-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(52, 211, 153, 0.3);
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
       padding: 0.25rem 0.65rem;
       border-radius: var(--radius-full);
       font-size: 0.75rem;
       font-family: var(--font-mono);
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 1rem;
     }
 
@@ -606,7 +630,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.35rem;
       z-index: 2;
     }
 
@@ -614,28 +638,28 @@
       width: 58px;
       height: 58px;
       border-radius: 16px;
-      background: linear-gradient(135deg, #2a1b54, #181036);
-      border: 2px solid var(--accent-blueberry);
+      background: #ffffff;
+      border: 2px solid var(--accent-red);
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-mono);
       font-weight: 800;
       font-size: 1.15rem;
-      color: #ffffff;
-      box-shadow: 0 0 18px rgba(139, 92, 246, 0.35);
+      color: #0f172a;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.18);
     }
 
     .node-city {
       font-size: 0.8rem;
-      color: var(--text-cream);
-      font-weight: 500;
+      color: #475569;
+      font-weight: 600;
     }
 
     .path-connector {
       flex: 1;
       height: 3px;
-      background: linear-gradient(90deg, var(--accent-blueberry), var(--accent-soda));
+      background: linear-gradient(90deg, #dc2626, #ef4444);
       position: relative;
       margin: 0 -0.5rem;
       z-index: 1;
@@ -646,15 +670,16 @@
       top: -24px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(28, 18, 58, 0.95);
-      border: 1px solid var(--accent-soda);
-      padding: 0.15rem 0.6rem;
+      background: #ffffff;
+      border: 1.5px solid var(--accent-red);
+      padding: 0.15rem 0.65rem;
       border-radius: var(--radius-full);
       font-size: 0.7rem;
       font-family: var(--font-mono);
-      font-weight: 700;
-      color: var(--accent-soda);
+      font-weight: 800;
+      color: var(--accent-red);
       white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
     }
 
     .route-financials {
@@ -663,14 +688,14 @@
       justify-content: space-between;
       margin-top: 1.5rem;
       padding-top: 1.2rem;
-      border-top: 1px dashed var(--border-subtle);
+      border-top: 1px dashed #e2e8f0;
     }
 
     .price-large {
       font-family: var(--font-heading);
       font-size: 2.2rem;
       font-weight: 800;
-      color: #34d399;
+      color: #0f172a;
       display: flex;
       align-items: baseline;
       gap: 0.25rem;
@@ -678,18 +703,19 @@
 
     .price-currency {
       font-size: 1.2rem;
-      color: var(--text-muted);
+      color: var(--accent-red);
     }
 
     .savings-pill {
       font-size: 0.75rem;
-      background: rgba(6, 182, 212, 0.15);
-      color: #22d3ee;
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      padding: 0.2rem 0.5rem;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+      padding: 0.2rem 0.6rem;
       border-radius: var(--radius-full);
-      margin-top: 0.2rem;
+      margin-top: 0.25rem;
       display: inline-block;
+      font-weight: 600;
     }
 
     /* -------------------------------------------------------------
@@ -706,12 +732,12 @@
     }
 
     .fuselage-card {
-      background: linear-gradient(180deg, #181135 0%, #0d091e 100%);
-      border: 1px solid var(--border-subtle);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 2px solid #e2e8f0;
       border-radius: 40px;
       padding: 2.5rem 1.5rem;
       position: relative;
-      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.65), var(--shadow-card);
+      box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), inset 0 0 30px rgba(226, 232, 240, 0.4);
     }
 
     /* Cockpit Nosecone */
@@ -726,8 +752,8 @@
       width: 140px;
       height: 60px;
       margin: 0 auto;
-      background: linear-gradient(180deg, #2a1c58, #181038);
-      border: 2px solid var(--border-subtle);
+      background: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+      border: 2px solid #cbd5e1;
       border-bottom: none;
       border-radius: 70px 70px 0 0;
       display: flex;
@@ -740,18 +766,19 @@
     .cockpit-window {
       width: 32px;
       height: 18px;
-      background: linear-gradient(135deg, rgba(103, 232, 249, 0.4), rgba(42, 28, 84, 0.9));
-      border: 1px solid var(--accent-soda);
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1.5px solid var(--accent-red);
       border-radius: 12px 12px 3px 3px;
     }
 
     .fuselage-label {
       font-size: 0.7rem;
       font-family: var(--font-mono);
-      color: var(--text-dim);
+      color: #64748b;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin-top: 0.4rem;
+      font-weight: 700;
     }
 
     /* Emergency Exit Rows */
@@ -761,14 +788,14 @@
       justify-content: space-between;
       padding: 0.6rem 1rem;
       margin: 1rem 0;
-      background: rgba(251, 191, 36, 0.08);
-      border-top: 1px dashed rgba(251, 191, 36, 0.3);
-      border-bottom: 1px dashed rgba(251, 191, 36, 0.3);
+      background: #fffbeb;
+      border-top: 1px dashed #f59e0b;
+      border-bottom: 1px dashed #f59e0b;
       border-radius: var(--radius-sm);
       font-size: 0.75rem;
-      color: var(--accent-gold);
+      color: #b45309;
       font-family: var(--font-mono);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     /* Seat Legend */
@@ -780,11 +807,12 @@
       gap: 1.2rem;
       margin-bottom: 1.5rem;
       padding: 0.75rem 1rem;
-      background: rgba(28, 18, 58, 0.6);
+      background: #f8fafc;
       border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
+      border: 1px solid #e2e8f0;
       font-size: 0.8rem;
-      color: var(--text-muted);
+      color: #475569;
+      font-weight: 600;
     }
 
     .legend-item {
@@ -817,14 +845,14 @@
       text-align: center;
       font-family: var(--font-mono);
       font-size: 0.8rem;
-      color: var(--text-dim);
-      font-weight: 600;
+      color: #94a3b8;
+      font-weight: 700;
     }
 
     .seat-card-btn {
       aspect-ratio: 1;
-      background: var(--seat-avail);
-      border: 1px solid var(--seat-border);
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
       border-radius: 8px;
       display: flex;
       flex-direction: column;
@@ -833,41 +861,45 @@
       font-family: var(--font-mono);
       font-weight: 700;
       font-size: 0.85rem;
-      color: var(--text-main);
+      color: #0f172a;
       cursor: pointer;
       position: relative;
       transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .seat-card-btn:hover:not(.booked) {
-      background: var(--seat-avail-hover);
-      border-color: var(--accent-soda);
+      background: #fef2f2;
+      border-color: var(--accent-red);
+      color: var(--accent-red);
       transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 14px rgba(103, 232, 249, 0.3);
+      box-shadow: 0 6px 14px rgba(220, 38, 38, 0.2);
     }
 
     .seat-card-btn.selected {
-      background: var(--seat-selected) !important;
-      border-color: #67e8f9 !important;
-      color: #0c081a !important;
+      background: linear-gradient(135deg, #e11d48, #dc2626) !important;
+      border-color: #b91c1c !important;
+      color: #ffffff !important;
       font-weight: 800;
       transform: scale(1.08);
-      box-shadow: 0 0 18px var(--seat-selected-glow) !important;
+      box-shadow: 0 0 18px rgba(220, 38, 38, 0.45) !important;
     }
 
     .seat-card-btn.first-class {
-      border-color: rgba(251, 191, 36, 0.5);
-      background: linear-gradient(135deg, #2c1f4e, #2a1f1a);
+      border-color: #f59e0b;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      color: #92400e;
     }
     .seat-card-btn.first-class:hover:not(.booked) {
-      border-color: var(--accent-gold);
+      border-color: #d97706;
+      background: #fde68a;
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25);
     }
 
     .seat-card-btn.booked {
-      background: #2d101a !important;
-      border-color: rgba(244, 63, 94, 0.4) !important;
-      color: #fda4af !important;
+      background: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+      color: #991b1b !important;
       cursor: not-allowed;
       opacity: 0.65;
       text-decoration: line-through;
@@ -875,7 +907,8 @@
 
     .seat-tier-badge {
       font-size: 0.6rem;
-      color: var(--text-dim);
+      color: inherit;
+      opacity: 0.75;
       margin-top: 1px;
     }
 
@@ -887,8 +920,8 @@
     }
 
     .chosen-seat-banner {
-      background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(6, 182, 212, 0.15));
-      border: 1px solid rgba(167, 139, 250, 0.35);
+      background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);
+      border: 1.5px solid #fecdd3;
       border-radius: var(--radius-md);
       padding: 1.2rem;
       display: flex;
@@ -900,7 +933,7 @@
       font-family: var(--font-heading);
       font-size: 2rem;
       font-weight: 800;
-      color: var(--accent-cream);
+      color: var(--accent-red);
     }
 
     .fare-breakdown-list {
@@ -910,19 +943,19 @@
       font-size: 0.9rem;
       margin: 1rem 0;
       padding: 0.9rem 0;
-      border-top: 1px dashed var(--border-subtle);
-      border-bottom: 1px dashed var(--border-subtle);
+      border-top: 1px dashed #e2e8f0;
+      border-bottom: 1px dashed #e2e8f0;
     }
 
     .fare-row {
       display: flex;
       justify-content: space-between;
-      color: var(--text-muted);
+      color: #64748b;
     }
     .fare-row.total {
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1.15rem;
-      color: var(--text-main);
+      color: #0f172a;
       padding-top: 0.4rem;
     }
 
@@ -931,7 +964,7 @@
        ------------------------------------------------------------- */
     .radar-container {
       position: relative;
-      background: #080514;
+      background: #0b1120;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-subtle);
       overflow: hidden;
@@ -949,9 +982,9 @@
       position: absolute;
       top: 1.2rem;
       left: 1.2rem;
-      background: rgba(14, 9, 30, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(10px);
-      border: 1px solid var(--border-subtle);
+      border: 1px solid rgba(220, 38, 38, 0.3);
       padding: 0.6rem 1rem;
       border-radius: var(--radius-md);
       display: flex;
@@ -959,6 +992,7 @@
       gap: 0.8rem;
       font-family: var(--font-mono);
       font-size: 0.8rem;
+      color: #f8fafc;
     }
 
     /* -------------------------------------------------------------
@@ -977,45 +1011,51 @@
     .bookings-table th {
       text-align: left;
       padding: 0.9rem 1rem;
-      background: rgba(28, 18, 58, 0.9);
-      color: var(--text-cream);
+      background: #f8fafc;
+      color: #475569;
       font-family: var(--font-heading);
       font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 2px solid var(--border-subtle);
+      border-bottom: 2px solid #e2e8f0;
     }
 
     .bookings-table td {
       padding: 1rem;
-      border-bottom: 1px solid rgba(167, 139, 250, 0.2);
-      color: var(--text-main);
+      border-bottom: 1px solid #f1f5f9;
+      color: #0f172a;
     }
 
     .bookings-table tr:hover td {
-      background: rgba(42, 28, 84, 0.4);
+      background: #fef2f2;
     }
 
     .btn-action-sm {
-      background: rgba(42, 28, 84, 0.8);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 0.35rem 0.8rem;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      color: #0f172a;
+      padding: 0.4rem 0.85rem;
       border-radius: var(--radius-sm);
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
     .btn-action-sm:hover {
-      background: var(--accent-blueberry);
+      background: var(--accent-red);
       color: #ffffff;
-      border-color: var(--accent-blueberry);
+      border-color: var(--accent-red);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+    .btn-action-sm.danger {
+      color: #991b1b;
+      border-color: #fecdd3;
     }
     .btn-action-sm.danger:hover {
-      background: #ef4444;
+      background: #dc2626;
       color: #ffffff;
-      border-color: #ef4444;
+      border-color: #dc2626;
     }
 
     /* -------------------------------------------------------------
@@ -1024,7 +1064,7 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(8, 5, 18, 0.88);
+      background: rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(12px);
       z-index: 200;
       display: flex;
@@ -1041,13 +1081,13 @@
     }
 
     .boarding-pass-card {
-      background: #fffef9;
-      color: #1e1442;
+      background: #ffffff;
+      color: #0f172a;
       border-radius: 24px;
       max-width: 680px;
       width: 100%;
       overflow: hidden;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
       position: relative;
       animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
@@ -1058,7 +1098,7 @@
     }
 
     .pass-header {
-      background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #2563eb 100%);
+      background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #e11d48 100%);
       color: #ffffff;
       padding: 1.4rem 1.8rem;
       display: flex;
@@ -1090,12 +1130,12 @@
       font-family: var(--font-heading);
       font-size: 2.5rem;
       font-weight: 800;
-      color: #1e1442;
+      color: #0f172a;
       line-height: 1;
     }
     .pass-airport-name {
       font-size: 0.8rem;
-      color: #7c6f96;
+      color: #64748b;
       margin-top: 0.25rem;
     }
 
@@ -1105,30 +1145,30 @@
       gap: 1.2rem;
       margin-bottom: 1.6rem;
       padding: 1.2rem;
-      background: #fbf7ff;
-      border: 1px solid #ede4ff;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       border-radius: 14px;
     }
 
     .pass-info-label {
       font-size: 0.7rem;
       text-transform: uppercase;
-      color: #9382b6;
-      font-weight: 600;
+      color: #64748b;
+      font-weight: 700;
       margin-bottom: 0.2rem;
     }
     .pass-info-value {
       font-family: var(--font-heading);
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1.1rem;
-      color: #1e1442;
+      color: #0f172a;
     }
 
     .pass-perforated-divider {
       position: relative;
       height: 20px;
       margin: 1.2rem -1.8rem;
-      border-top: 2px dashed #d8b4fe;
+      border-top: 2px dashed #fca5a5;
     }
     .pass-perforated-divider::before,
     .pass-perforated-divider::after {
@@ -1138,7 +1178,7 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: rgba(8, 5, 18, 0.88);
+      background: rgba(15, 23, 42, 0.7);
     }
     .pass-perforated-divider::before { left: -12px; }
     .pass-perforated-divider::after { right: -12px; }
@@ -1158,7 +1198,7 @@
     .qr-box {
       width: 64px;
       height: 64px;
-      background: #1e1442;
+      background: #0f172a;
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -1170,8 +1210,8 @@
       display: flex;
       gap: 0.8rem;
       padding: 1.2rem 1.8rem;
-      background: #faf5ff;
-      border-top: 1px solid #ede4ff;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
     }
 
     /* -------------------------------------------------------------
@@ -1189,15 +1229,15 @@
     }
 
     .toast {
-      background: rgba(28, 18, 58, 0.96);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-left: 4px solid var(--accent-blueberry);
-      color: var(--text-main);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--accent-red);
+      color: #0f172a;
       padding: 0.9rem 1.4rem;
       border-radius: var(--radius-md);
       font-size: 0.9rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
       pointer-events: auto;
       display: flex;
       align-items: center;
@@ -1224,14 +1264,14 @@
 </head>
 <body>
 
-  <!-- Ambient Blueberry Cream Soda Floating Fizz -->
-  <div class="soda-fizz-bg" aria-hidden="true">
-    <div class="soda-bubble" style="left: 8%; width: 14px; height: 14px; animation-duration: 9s; animation-delay: 0s;"></div>
-    <div class="soda-bubble" style="left: 22%; width: 22px; height: 22px; animation-duration: 12s; animation-delay: 2s;"></div>
-    <div class="soda-bubble" style="left: 40%; width: 10px; height: 10px; animation-duration: 7s; animation-delay: 1s;"></div>
-    <div class="soda-bubble" style="left: 58%; width: 18px; height: 18px; animation-duration: 11s; animation-delay: 3s;"></div>
-    <div class="soda-bubble" style="left: 75%; width: 12px; height: 12px; animation-duration: 8s; animation-delay: 0.5s;"></div>
-    <div class="soda-bubble" style="left: 90%; width: 16px; height: 16px; animation-duration: 10s; animation-delay: 4s;"></div>
+  <!-- Ambient Aeronautical Floating Sparks -->
+  <div class="aero-ambient-bg" aria-hidden="true">
+    <div class="aero-spark" style="left: 7%; width: 14px; height: 14px; animation-duration: 10s; animation-delay: 0s;"></div>
+    <div class="aero-spark" style="left: 20%; width: 20px; height: 20px; animation-duration: 14s; animation-delay: 2s;"></div>
+    <div class="aero-spark" style="left: 38%; width: 10px; height: 10px; animation-duration: 8s; animation-delay: 1s;"></div>
+    <div class="aero-spark" style="left: 55%; width: 16px; height: 16px; animation-duration: 12s; animation-delay: 3s;"></div>
+    <div class="aero-spark" style="left: 74%; width: 12px; height: 12px; animation-duration: 9s; animation-delay: 0.5s;"></div>
+    <div class="aero-spark" style="left: 91%; width: 18px; height: 18px; animation-duration: 11s; animation-delay: 4s;"></div>
   </div>
 
   <!-- Top Navigation Header -->
@@ -1243,7 +1283,7 @@
         </svg>
       </div>
       <div>
-        <div class="brand-title">SkyRoute <span style="font-weight: 300;">Neo</span> <span class="brand-badge">C++17</span></div>
+        <div class="brand-title">SkyRoute <span class="brand-accent">Neo</span> <span class="brand-badge">C++17</span></div>
       </div>
     </a>
 
@@ -1255,7 +1295,7 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 2px; opacity: 0.75;"><path d="m6 9 6 6 6-6"/></svg>
       </div>
       <div class="status-pill" id="sqlitePill" title="SQLite Database Persistence">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         <span id="storageLabel">airline.db</span>
       </div>
     </div>
@@ -1277,7 +1317,7 @@
     <div class="hero-content">
       <div class="hero-tagline">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-        High-Performance Aviation Engine
+        Precision Aviation Architecture
       </div>
       <h1 class="hero-title">Experience <span>Next-Gen</span> Flight Optimization</h1>
       <p class="hero-desc">
@@ -1323,7 +1363,7 @@
           <div class="card-header">
             <div>
               <div class="card-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
                 Find Optimal Flight Route
               </div>
               <div class="card-subtitle">Graph Dijkstra computation for lowest fare path</div>
@@ -1379,7 +1419,7 @@
           <div class="card-header">
             <div>
               <div class="card-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 Optimal Route Analysis
               </div>
               <div class="card-subtitle">Real-time shortest-path algorithm telemetry</div>
@@ -1387,8 +1427,8 @@
           </div>
 
           <div id="routeLoading" style="display: none; text-align: center; padding: 3rem 0;">
-            <svg style="animation: spin 1s linear infinite; margin: 0 auto 1rem;" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-            <div style="font-family: var(--font-mono); color: var(--accent-cyan);">Running Dijkstra on Flight Graph...</div>
+            <svg style="animation: spin 1s linear infinite; margin: 0 auto 1rem;" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <div style="font-family: var(--font-mono); color: #dc2626; font-weight: 700;">Running Dijkstra on Flight Graph...</div>
           </div>
 
           <div id="routeEmptyState" style="text-align: center; padding: 3.5rem 1rem; color: var(--text-dim);">
@@ -1460,10 +1500,10 @@
 
           <!-- Seat Legend -->
           <div class="seat-legend-grid">
-            <div class="legend-item"><div class="legend-sample" style="background: var(--seat-avail); border: 1px solid var(--seat-border);"></div> Available</div>
-            <div class="legend-item"><div class="legend-sample" style="background: var(--seat-first); border: 1px solid var(--accent-gold);"></div> Business / First</div>
-            <div class="legend-item"><div class="legend-sample" style="background: var(--seat-selected); box-shadow: 0 0 8px var(--seat-selected);"></div> Selected</div>
-            <div class="legend-item"><div class="legend-sample" style="background: #2a1215; border: 1px solid #ef4444; opacity: 0.65;"></div> Booked</div>
+            <div class="legend-item"><div class="legend-sample" style="background: var(--seat-avail); border: 1.5px solid var(--seat-border);"></div> Available</div>
+            <div class="legend-item"><div class="legend-sample" style="background: var(--seat-first); border: 1.5px solid var(--accent-gold);"></div> Business / First</div>
+            <div class="legend-item"><div class="legend-sample" style="background: var(--seat-selected); box-shadow: 0 0 8px rgba(220, 38, 38, 0.45);"></div> Selected</div>
+            <div class="legend-item"><div class="legend-sample" style="background: #fee2e2; border: 1px solid #fca5a5; opacity: 0.7;"></div> Booked</div>
           </div>
 
           <!-- Cockpit Nose Graphic -->
@@ -1476,7 +1516,7 @@
           </div>
 
           <!-- Business Class Section Indicator -->
-          <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); text-align: center; margin-bottom: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;">
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #b45309; text-align: center; margin-bottom: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;">
             ✦ First & Business Class (Rows 1-2) ✦
           </div>
 
@@ -1505,7 +1545,7 @@
             <div class="card-header">
               <div>
                 <div class="card-title">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   Passenger & Reservation
                 </div>
                 <div class="card-subtitle">Collision-safe SQLite atomic transaction</div>
@@ -1521,7 +1561,7 @@
               </div>
               <div style="text-align: right;">
                 <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Flight Code</div>
-                <div style="font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: #ffffff;" id="flightCodeDisplay">AI101</div>
+                <div style="font-family: var(--font-mono); font-size: 1.3rem; font-weight: 800; color: #0f172a;" id="flightCodeDisplay">AI101</div>
               </div>
             </div>
 
@@ -1563,7 +1603,7 @@
               </div>
               <div class="fare-row total">
                 <span>Total Amount</span>
-                <span id="fareTotal" style="color: #34d399;">₹ 4,850</span>
+                <span id="fareTotal" style="color: #dc2626; font-weight: 800;">₹ 4,850</span>
               </div>
             </div>
 
@@ -1573,7 +1613,7 @@
               Confirm Seat & Generate Boarding Pass
             </button>
 
-            <div id="bookingErrorNotice" style="display: none; margin-top: 1rem; padding: 0.85rem; border-radius: var(--radius-sm); background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 0.85rem;">
+            <div id="bookingErrorNotice" style="display: none; margin-top: 1rem; padding: 0.85rem; border-radius: var(--radius-sm); background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; font-size: 0.85rem; font-weight: 600;">
               <!-- Injected dynamically on 409 Conflict -->
             </div>
 
@@ -1591,7 +1631,7 @@
         <div class="card-header" style="margin-bottom: 0.8rem;">
           <div>
             <div class="card-title">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/><circle cx="12" cy="12" r="4"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/><circle cx="12" cy="12" r="4"/></svg>
               Air Traffic & Route Graph Radar
             </div>
             <div class="card-subtitle">Real-time simulation of flight network graph and aircraft navigation</div>
@@ -1608,7 +1648,7 @@
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
             <span>AIR TRAFFIC CONTROL RADAR ACTIVE</span>
             <span style="color: var(--text-dim);">|</span>
-            <span style="color: var(--accent-cyan);" id="radarSpeedLabel">Normal Traffic Speed</span>
+            <span style="color: #f87171;" id="radarSpeedLabel">Normal Traffic Speed</span>
           </div>
         </div>
       </div>
@@ -1622,7 +1662,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               Confirmed Reservations Database
             </div>
             <div class="card-subtitle">Live records synced with C++ SQLite bookings table</div>
@@ -1688,7 +1728,7 @@
             <div class="pass-airport-name" id="passOriginCity">New Delhi</div>
           </div>
           <div style="display: flex; flex-direction: column; align-items: center; gap: 0.3rem;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
             <span style="font-size: 0.75rem; font-family: var(--font-mono); color: #64748b;" id="passDuration">2h 15m NON-STOP</span>
           </div>
           <div style="text-align: right;">
@@ -1704,7 +1744,7 @@
           </div>
           <div>
             <div class="pass-info-label">Seat</div>
-            <div class="pass-info-value" id="passSeatNumber" style="color: #0284c7;">1A</div>
+            <div class="pass-info-value" id="passSeatNumber" style="color: #dc2626;">1A</div>
           </div>
           <div>
             <div class="pass-info-label">Class</div>
@@ -1811,34 +1851,34 @@
        SERVER ENGINE & CONNECTION MANAGER MODAL
        ------------------------------------------------------------- -->
   <div class="modal-backdrop" id="serverManagerModal" onclick="closeServerModalOnBackdrop(event)">
-    <div class="boarding-pass-card" style="max-width: 580px; background: #140e2b; color: var(--text-main); border: 1px solid var(--border-subtle); box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(139, 92, 246, 0.35);">
+    <div class="boarding-pass-card" style="max-width: 580px; background: #ffffff; color: var(--text-main); border: 1.5px solid #e2e8f0; box-shadow: 0 25px 60px rgba(15,23,42,0.25), 0 0 40px rgba(220, 38, 38, 0.15);">
       
       <!-- Modal Header -->
-      <div class="pass-header" style="background: linear-gradient(135deg, #6d28d9, #4f46e5); padding: 1.2rem 1.6rem;">
+      <div class="pass-header" style="background: linear-gradient(135deg, #b91c1c, #dc2626); padding: 1.2rem 1.6rem;">
         <div class="pass-airline" style="font-size: 1.25rem;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
           Engine & Server Manager
         </div>
-        <button onclick="closeServerModal()" style="background: rgba(255,255,255,0.15); border: none; color: #fff; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.2s;">✕</button>
+        <button onclick="closeServerModal()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.2s;">✕</button>
       </div>
 
       <!-- Modal Body -->
       <div style="padding: 1.6rem; display: flex; flex-direction: column; gap: 1.2rem;">
         
         <!-- Live Status Card -->
-        <div style="background: rgba(28, 18, 58, 0.7); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.2rem;">
+        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 1.2rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-            <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700; letter-spacing: 0.05em;">Current Active Engine</span>
-            <span id="modalActiveBadge" style="font-size: 0.75rem; font-family: var(--font-mono); padding: 0.25rem 0.65rem; border-radius: 9999px; background: rgba(103, 232, 249, 0.15); color: #67e8f9; border: 1px solid rgba(103, 232, 249, 0.3); font-weight: 700;">SkyRoute Edge Engine</span>
+            <span style="font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Current Active Engine</span>
+            <span id="modalActiveBadge" style="font-size: 0.75rem; font-family: var(--font-mono); padding: 0.25rem 0.65rem; border-radius: 9999px; background: #fef2f2; color: #dc2626; border: 1px solid #fecdd3; font-weight: 700;">SkyRoute Edge Engine</span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; font-size: 0.85rem;">
             <div>
-              <div style="color: var(--text-muted); font-size: 0.75rem;">Endpoint URL</div>
-              <div id="modalEndpointUrl" style="font-family: var(--font-mono); color: var(--text-cream); word-break: break-all; margin-top: 2px;">In-Browser Memory</div>
+              <div style="color: #64748b; font-size: 0.75rem; font-weight: 600;">Endpoint URL</div>
+              <div id="modalEndpointUrl" style="font-family: var(--font-mono); color: #0f172a; word-break: break-all; margin-top: 2px; font-weight: 700;">In-Browser Memory</div>
             </div>
             <div>
-              <div style="color: var(--text-muted); font-size: 0.75rem;">Ping Latency</div>
-              <div id="modalPingLatency" style="font-family: var(--font-mono); color: #34d399; margin-top: 2px;">0ms (Edge Client)</div>
+              <div style="color: #64748b; font-size: 0.75rem; font-weight: 600;">Ping Latency</div>
+              <div id="modalPingLatency" style="font-family: var(--font-mono); color: #059669; margin-top: 2px; font-weight: 700;">0ms (Edge Client)</div>
             </div>
           </div>
         </div>
@@ -1851,23 +1891,23 @@
 
         <!-- Rechange Server Section -->
         <div style="margin-top: 0.3rem;">
-          <label style="font-size: 0.8rem; color: var(--text-cream); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.6rem; display: block;">Switch / Rechange Server Mode</label>
+          <label style="font-size: 0.8rem; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.6rem; display: block;">Switch / Rechange Server Mode</label>
           
           <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--text-main); cursor: pointer; text-transform: none; font-weight: 500; background: rgba(28, 18, 58, 0.4); padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <input type="radio" name="serverSelection" value="auto" id="radioAuto" onchange="onServerModeSelect('auto')">
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: #0f172a; cursor: pointer; text-transform: none; font-weight: 500; background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1.5px solid #e2e8f0;">
+              <input type="radio" name="serverSelection" value="auto" id="radioAuto" onchange="onServerModeSelect('auto')" style="accent-color: #dc2626;">
               <span><strong>Auto-Detect</strong> — Probe Crow C++ (Port 18080) & Localhost</span>
             </label>
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--text-main); cursor: pointer; text-transform: none; font-weight: 500; background: rgba(28, 18, 58, 0.4); padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <input type="radio" name="serverSelection" value="local" id="radioLocal" onchange="onServerModeSelect('local')">
-              <span><strong>Local Crow Server</strong> — Fixed <code style="font-family: var(--font-mono); color: #67e8f9;">http://127.0.0.1:18080</code></span>
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: #0f172a; cursor: pointer; text-transform: none; font-weight: 500; background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1.5px solid #e2e8f0;">
+              <input type="radio" name="serverSelection" value="local" id="radioLocal" onchange="onServerModeSelect('local')" style="accent-color: #dc2626;">
+              <span><strong>Local Crow Server</strong> — Fixed <code style="font-family: var(--font-mono); color: #dc2626;">http://127.0.0.1:18080</code></span>
             </label>
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--text-main); cursor: pointer; text-transform: none; font-weight: 500; background: rgba(28, 18, 58, 0.4); padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <input type="radio" name="serverSelection" value="edge" id="radioEdge" onchange="onServerModeSelect('edge')">
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: #0f172a; cursor: pointer; text-transform: none; font-weight: 500; background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1.5px solid #e2e8f0;">
+              <input type="radio" name="serverSelection" value="edge" id="radioEdge" onchange="onServerModeSelect('edge')" style="accent-color: #dc2626;">
               <span><strong>Edge Web Engine Only</strong> — Standalone client-side mode (Zero server dependency)</span>
             </label>
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--text-main); cursor: pointer; text-transform: none; font-weight: 500; background: rgba(28, 18, 58, 0.4); padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
-              <input type="radio" name="serverSelection" value="custom" id="radioCustom" onchange="onServerModeSelect('custom')">
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: #0f172a; cursor: pointer; text-transform: none; font-weight: 500; background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1.5px solid #e2e8f0;">
+              <input type="radio" name="serverSelection" value="custom" id="radioCustom" onchange="onServerModeSelect('custom')" style="accent-color: #dc2626;">
               <span><strong>Custom Server URL</strong> — Connect to remote or deployed C++ backend</span>
             </label>
           </div>
@@ -1877,9 +1917,14 @@
             <input type="text" id="customUrlInput" placeholder="http://127.0.0.1:18080 or https://api.my-airline.com" style="margin-top: 0.2rem;">
           </div>
 
-          <button class="btn-action-sm" onclick="applyServerSettings()" style="width: 100%; padding: 0.75rem; font-size: 0.9rem; background: var(--accent-blueberry); color: #fff; font-weight: 700; border-radius: 10px;">
+          <button class="btn-primary" onclick="applyServerSettings()" style="width: 100%; padding: 0.75rem; font-size: 0.9rem;">
             Apply & Switch Server
           </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
         </div>
 
       </div>
@@ -2318,10 +2363,10 @@
         isServerLive = false;
         lastPingLatency = 0;
         dot.className = 'status-dot';
-        dot.style.background = '#67e8f9';
-        dot.style.boxShadow = '0 0 10px #67e8f9';
+        dot.style.background = '#10b981';
+        dot.style.boxShadow = '0 0 10px #10b981';
         text.innerText = 'SkyRoute Engine: Active';
-        updateModalStatus('SkyRoute Edge Engine', 'In-Browser Memory', 'Active (0ms)', '#67e8f9');
+        updateModalStatus('SkyRoute Edge Engine', 'In-Browser Memory', 'Active (0ms)', '#059669');
         if (verbose) showToast('SkyRoute Edge Engine is active & ready!', 'success');
         return;
       }
@@ -2366,10 +2411,10 @@
         isServerLive = false;
         lastPingLatency = 0;
         dot.className = 'status-dot';
-        dot.style.background = '#67e8f9';
-        dot.style.boxShadow = '0 0 10px #67e8f9';
+        dot.style.background = '#10b981';
+        dot.style.boxShadow = '0 0 10px #10b981';
         text.innerText = 'SkyRoute Engine: Active';
-        updateModalStatus('SkyRoute Edge Engine', 'In-Browser Client', 'Active (Offline Server)', '#67e8f9');
+        updateModalStatus('SkyRoute Edge Engine', 'In-Browser Client', 'Active (Offline Server)', '#059669');
         if (verbose) showToast('C++ server not reachable — Edge Engine activated automatically!', 'info');
       }
     }
@@ -2489,26 +2534,27 @@
       routeData.flights.forEach((fId) => {
         const meta = FLIGHTS_METADATA[fId] || { airline: 'Partner Airline', departure: '10:00 AM', arrival: '12:00 PM', duration: '2h', aircraft: 'Airbus A320' };
         const seg = document.createElement('div');
-        seg.style.background = 'rgba(15, 23, 42, 0.7)';
-        seg.style.border = '1px solid var(--border-subtle)';
-        seg.style.borderRadius = '12px';
-        seg.style.padding = '1rem 1.2rem';
+        seg.style.background = '#ffffff';
+        seg.style.border = '1.5px solid #e2e8f0';
+        seg.style.borderRadius = '14px';
+        seg.style.padding = '1rem 1.25rem';
         seg.style.display = 'flex';
         seg.style.alignItems = 'center';
         seg.style.justifyContent = 'space-between';
+        seg.style.boxShadow = '0 2px 8px rgba(15, 23, 42, 0.04)';
         seg.innerHTML = `
           <div>
-            <div style="font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-family: var(--font-mono); color: var(--accent-cyan);">${fId}</span>
+            <div style="font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-family: var(--font-mono); color: #dc2626; font-size: 1.05rem;">${fId}</span>
               <span>— ${meta.airline}</span>
             </div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">
               ${meta.fromName} ➔ ${meta.toName} • ${meta.aircraft}
             </div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: var(--font-mono); font-weight: 700; color: #ffffff;">${meta.departure} – ${meta.arrival}</div>
-            <div style="font-size: 0.8rem; color: var(--accent-cyan);">${meta.duration} Non-stop</div>
+            <div style="font-family: var(--font-mono); font-weight: 700; color: #0f172a;">${meta.departure} – ${meta.arrival}</div>
+            <div style="font-size: 0.8rem; color: #dc2626; font-weight: 700;">${meta.duration} Non-stop</div>
           </div>
         `;
         segmentsList.appendChild(seg);
@@ -2809,13 +2855,13 @@
         const meta = FLIGHTS_METADATA[b.flight_id] || { from: 'DEL', to: 'BOM', airline: 'SkyRoute' };
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan);">#${b.booking_id}</td>
-          <td style="font-weight: 600;">${b.passenger_name}</td>
-          <td><span style="font-family: var(--font-mono); font-weight: 700;">${b.flight_id}</span></td>
-          <td>${meta.from} ➔ ${meta.to}</td>
-          <td><strong style="color: #34d399; font-family: var(--font-mono);">${b.seat_number}</strong></td>
-          <td><span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem;">CONFIRMED</span></td>
-          <td style="font-size: 0.8rem; color: var(--text-muted);">${b.created_at || 'Just now'}</td>
+          <td style="font-family: var(--font-mono); font-weight: 700; color: #dc2626;">#${b.booking_id}</td>
+          <td style="font-weight: 700; color: #0f172a;">${b.passenger_name}</td>
+          <td><span style="font-family: var(--font-mono); font-weight: 800; color: #0f172a;">${b.flight_id}</span></td>
+          <td style="color: #475569;">${meta.from} ➔ ${meta.to}</td>
+          <td><strong style="color: #dc2626; font-family: var(--font-mono); font-size: 1.05rem;">${b.seat_number}</strong></td>
+          <td><span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700;">CONFIRMED</span></td>
+          <td style="font-size: 0.8rem; color: #64748b;">${b.created_at || 'Just now'}</td>
           <td style="display: flex; gap: 0.5rem;">
             <button class="btn-action-sm" onclick='viewSavedBoardingPass(${JSON.stringify(b)})'>Ticket</button>
             <button class="btn-action-sm danger" onclick="cancelBooking(${b.booking_id})">Cancel</button>
@@ -2893,7 +2939,7 @@
       canvas.height = window.innerHeight;
 
       const particles = [];
-      const colors = ['#8b5cf6', '#c084fc', '#67e8f9', '#38bdf8', '#fde68a', '#f472b6', '#ffffff'];
+      const colors = ['#dc2626', '#b91c1c', '#e11d48', '#f59e0b', '#fbbf24', '#0f172a', '#ffffff', '#fb7185'];
 
       for (let i = 0; i < 90; i++) {
         particles.push({
@@ -3009,7 +3055,7 @@
         const maxR = Math.min(w, h) * 0.46;
 
         // Radar background grid & circles
-        ctx.strokeStyle = 'rgba(139, 92, 246, 0.16)';
+        ctx.strokeStyle = 'rgba(220, 38, 38, 0.16)';
         ctx.lineWidth = 1;
         for (let r = maxR * 0.25; r <= maxR; r += maxR * 0.25) {
           ctx.beginPath();
@@ -3033,8 +3079,8 @@
         ctx.arc(cx, cy, maxR, this.angle, this.angle + 0.45);
         ctx.closePath();
         const beamGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
-        beamGrad.addColorStop(0, 'rgba(139, 92, 246, 0.35)');
-        beamGrad.addColorStop(1, 'rgba(103, 232, 249, 0.02)');
+        beamGrad.addColorStop(0, 'rgba(220, 38, 38, 0.4)');
+        beamGrad.addColorStop(1, 'rgba(239, 68, 68, 0.02)');
         ctx.fillStyle = beamGrad;
         ctx.fill();
         ctx.restore();
@@ -3059,7 +3105,7 @@
           ctx.beginPath();
           ctx.moveTo(x1, y1);
           ctx.lineTo(x2, y2);
-          ctx.strokeStyle = isHighlighted ? 'rgba(103, 232, 249, 0.95)' : 'rgba(139, 92, 246, 0.35)';
+          ctx.strokeStyle = isHighlighted ? '#dc2626' : 'rgba(148, 163, 184, 0.35)';
           ctx.lineWidth = isHighlighted ? 3 : 1.5;
           ctx.setLineDash(isHighlighted ? [8, 4] : [4, 4]);
           ctx.stroke();
@@ -3068,8 +3114,8 @@
           // Edge Label (Flight ID & Price)
           const midX = (x1 + x2) / 2;
           const midY = (y1 + y2) / 2;
-          ctx.font = '600 11px JetBrains Mono';
-          ctx.fillStyle = isHighlighted ? '#67e8f9' : '#c4b5fd';
+          ctx.font = '700 11px JetBrains Mono';
+          ctx.fillStyle = isHighlighted ? '#f87171' : '#94a3b8';
           ctx.fillText(`${e.f} (${e.price})`, midX + 5, midY - 5);
         });
 
@@ -3083,10 +3129,10 @@
 
           // Airplane icon / blip
           ctx.beginPath();
-          ctx.arc(ax, ay, 4, 0, Math.PI * 2);
-          ctx.fillStyle = '#67e8f9';
-          ctx.shadowColor = '#67e8f9';
-          ctx.shadowBlur = 10;
+          ctx.arc(ax, ay, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = '#dc2626';
+          ctx.shadowBlur = 12;
           ctx.fill();
           ctx.shadowBlur = 0;
 
@@ -3103,21 +3149,21 @@
 
           ctx.beginPath();
           ctx.arc(nx, ny, 10, 0, Math.PI * 2);
-          ctx.fillStyle = '#140e2b';
-          ctx.strokeStyle = '#c084fc';
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = '#dc2626';
           ctx.lineWidth = 2.5;
-          ctx.shadowColor = '#c084fc';
-          ctx.shadowBlur = 12;
+          ctx.shadowColor = '#dc2626';
+          ctx.shadowBlur = 14;
           ctx.fill();
           ctx.stroke();
           ctx.shadowBlur = 0;
 
           ctx.font = '800 13px Outfit';
-          ctx.fillStyle = '#fef3c7';
+          ctx.fillStyle = '#ffffff';
           ctx.fillText(k, nx - 12, ny - 16);
 
-          ctx.font = '500 10px Plus Jakarta Sans';
-          ctx.fillStyle = '#c4b5fd';
+          ctx.font = '600 10px Plus Jakarta Sans';
+          ctx.fillStyle = '#fca5a5';
           ctx.fillText(n.name, nx - 12, ny + 24);
         });
       }
