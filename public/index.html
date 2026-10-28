@@ -6,54 +6,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Next-Generation Airline Reservation System powered by C++ Crow, Dijkstra Route Optimization, and SQLite3 collision-safe booking.">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Blueberry Cream Soda Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* -------------------------------------------------------------
-       DESIGN TOKENS & CSS VARIABLES
+       BLUEBERRY CREAM SODA DESIGN TOKENS & CSS VARIABLES
        ------------------------------------------------------------- */
     :root {
-      --bg-deep: #060913;
-      --bg-surface: #0c1222;
-      --bg-card: rgba(15, 23, 42, 0.78);
-      --bg-card-hover: rgba(30, 41, 59, 0.88);
-      --bg-glass: rgba(15, 23, 42, 0.65);
+      --bg-deep: #0c081a;
+      --bg-surface: #140e2b;
+      --bg-card: rgba(28, 18, 58, 0.78);
+      --bg-card-hover: rgba(42, 28, 84, 0.88);
+      --bg-glass: rgba(26, 17, 54, 0.68);
       
+      --accent-blueberry: #8b5cf6;
+      --accent-blueberry-glow: rgba(139, 92, 246, 0.45);
+      --accent-soda: #67e8f9;
+      --accent-soda-glow: rgba(103, 232, 249, 0.45);
       --accent-cyan: #38bdf8;
-      --accent-cyan-glow: rgba(56, 189, 248, 0.45);
+      --accent-cyan-glow: rgba(56, 189, 248, 0.4);
+      --accent-cream: #fde68a;
+      --accent-cream-glow: rgba(253, 230, 138, 0.35);
       --accent-indigo: #6366f1;
-      --accent-purple: #a855f7;
-      --accent-gold: #f59e0b;
-      --accent-gold-glow: rgba(245, 158, 11, 0.35);
+      --accent-purple: #c084fc;
+      --accent-blush: #f472b6;
+      --accent-gold: #fbbf24;
+      --accent-gold-glow: rgba(251, 191, 36, 0.35);
       
-      --seat-avail: #1e293b;
-      --seat-avail-hover: #334155;
-      --seat-selected: #10b981;
-      --seat-selected-glow: rgba(16, 185, 129, 0.5);
-      --seat-booked: #ef4444;
-      --seat-first: #d97706;
-      --seat-border: #334155;
+      --seat-avail: #221844;
+      --seat-avail-hover: #37256d;
+      --seat-selected: #06b6d4;
+      --seat-selected-glow: rgba(6, 182, 212, 0.55);
+      --seat-booked: #7f1d1d;
+      --seat-first: #f59e0b;
+      --seat-border: #44327a;
       
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --border-subtle: rgba(51, 65, 85, 0.7);
-      --border-glow: rgba(56, 189, 248, 0.3);
+      --text-main: #fdfbf7;
+      --text-cream: #fef3c7;
+      --text-muted: #c4b5fd;
+      --text-dim: #9382b6;
+      --border-subtle: rgba(167, 139, 250, 0.22);
+      --border-glow: rgba(192, 132, 252, 0.45);
       
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
       --radius-full: 9999px;
       
       --font-body: 'Plus Jakarta Sans', sans-serif;
-      --font-heading: 'Outfit', sans-serif;
+      --font-heading: 'Outfit', 'Fredoka', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       
-      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
-      --shadow-glow: 0 0 25px -5px var(--accent-cyan-glow);
+      --shadow-card: 0 14px 35px -10px rgba(6, 4, 15, 0.7), 0 0 0 1px var(--border-subtle);
+      --shadow-glow: 0 0 30px -4px var(--accent-blueberry-glow);
     }
 
     * {
@@ -65,9 +73,10 @@
     body {
       background-color: var(--bg-deep);
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 85% 25%, rgba(99, 102, 241, 0.09) 0%, transparent 40%),
-        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.05) 0%, transparent 45%);
+        radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 85% 20%, rgba(103, 232, 249, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(253, 230, 138, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(244, 114, 182, 0.12) 0%, transparent 40%);
       background-attachment: fixed;
       color: var(--text-main);
       font-family: var(--font-body);
@@ -76,6 +85,31 @@
       flex-direction: column;
       overflow-x: hidden;
       line-height: 1.5;
+      position: relative;
+    }
+
+    /* Ambient Cream Soda Floating Fizz */
+    .soda-fizz-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .soda-bubble {
+      position: absolute;
+      bottom: -40px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.85), rgba(192, 132, 252, 0.3) 50%, rgba(103, 232, 249, 0.4) 100%);
+      border: 1px solid rgba(254, 243, 199, 0.5);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(103, 232, 249, 0.3), inset 0 0 6px rgba(255, 255, 255, 0.6);
+      animation: floatBubble linear infinite;
+    }
+    @keyframes floatBubble {
+      0% { transform: translateY(0) scale(0.7); opacity: 0; }
+      15% { opacity: 0.55; }
+      80% { opacity: 0.55; }
+      100% { transform: translateY(-110vh) scale(1.15); opacity: 0; }
     }
 
     /* -------------------------------------------------------------
@@ -85,7 +119,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(6, 9, 19, 0.85);
+      background: rgba(14, 9, 30, 0.85);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-subtle);
       padding: 0.85rem 2rem;
@@ -106,16 +140,16 @@
     .brand-logo-glow {
       width: 44px;
       height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #0284c7, #6366f1);
+      border-radius: 14px;
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 18px var(--accent-cyan-glow);
+      box-shadow: 0 0 20px var(--accent-blueberry-glow);
       transition: transform 0.3s ease;
     }
     .brand:hover .brand-logo-glow {
-      transform: scale(1.05) rotate(4deg);
+      transform: scale(1.06) rotate(4deg);
     }
 
     .brand-title {
@@ -123,7 +157,7 @@
       font-size: 1.35rem;
       font-weight: 800;
       letter-spacing: -0.02em;
-      background: linear-gradient(90deg, #ffffff, #38bdf8);
+      background: linear-gradient(90deg, #fffbeb 0%, #fde68a 35%, #c084fc 70%, #67e8f9 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: flex;
@@ -134,15 +168,15 @@
     .brand-badge {
       font-size: 0.65rem;
       font-family: var(--font-mono);
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 0.15rem 0.5rem;
+      background: rgba(139, 92, 246, 0.18);
+      color: var(--accent-cream);
+      border: 1px solid rgba(253, 230, 138, 0.35);
+      padding: 0.15rem 0.55rem;
       border-radius: var(--radius-full);
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      -webkit-text-fill-color: var(--accent-cyan);
+      -webkit-text-fill-color: var(--accent-cream);
     }
 
     /* System Telemetry Pill */
@@ -156,7 +190,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(28, 18, 58, 0.7);
       border: 1px solid var(--border-subtle);
       padding: 0.35rem 0.85rem;
       border-radius: var(--radius-full);
@@ -191,7 +225,7 @@
     }
 
     .icon-btn {
-      background: rgba(30, 41, 59, 0.6);
+      background: rgba(42, 28, 84, 0.6);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       width: 38px;
@@ -204,14 +238,14 @@
       transition: all 0.2s ease;
     }
     .icon-btn:hover {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: var(--accent-cyan);
-      color: var(--text-main);
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--accent-blueberry);
+      color: var(--text-cream);
       transform: translateY(-1px);
     }
     .icon-btn.active {
-      color: var(--accent-cyan);
-      border-color: var(--accent-cyan);
+      color: var(--accent-soda);
+      border-color: var(--accent-soda);
     }
 
     /* -------------------------------------------------------------
@@ -226,14 +260,14 @@
       min-height: 220px;
       display: flex;
       align-items: center;
-      background: #090e1a;
+      background: #110c26;
       box-shadow: var(--shadow-card);
     }
 
     .hero-bg {
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(90deg, rgba(6, 9, 19, 0.95) 0%, rgba(6, 9, 19, 0.65) 50%, rgba(6, 9, 19, 0.4) 100%), url('hero.jpg');
+      background-image: linear-gradient(90deg, rgba(12, 8, 26, 0.95) 0%, rgba(28, 18, 58, 0.75) 50%, rgba(14, 9, 30, 0.45) 100%), url('hero.jpg');
       background-size: cover;
       background-position: center right;
       z-index: 1;
@@ -254,9 +288,9 @@
       font-family: var(--font-mono);
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: var(--accent-cyan);
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--accent-cream);
+      background: rgba(139, 92, 246, 0.18);
+      border: 1px solid rgba(253, 230, 138, 0.3);
       padding: 0.3rem 0.8rem;
       border-radius: var(--radius-full);
       margin-bottom: 0.75rem;
@@ -269,10 +303,11 @@
       line-height: 1.15;
       letter-spacing: -0.03em;
       margin-bottom: 0.6rem;
+      color: var(--text-main);
     }
 
     .hero-title span {
-      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      background: linear-gradient(90deg, #fde68a, #c084fc, #67e8f9);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -290,10 +325,12 @@
       margin: 1.5rem 2rem 0;
       display: flex;
       justify-content: center;
+      position: relative;
+      z-index: 2;
     }
 
     .tabs-container {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(26, 17, 54, 0.85);
       backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-full);
@@ -319,16 +356,17 @@
       transition: all 0.25s ease;
     }
     .tab-btn:hover {
-      color: var(--text-main);
+      color: var(--text-cream);
     }
     .tab-btn.active {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
       color: #ffffff;
-      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+      box-shadow: 0 4px 18px rgba(124, 58, 237, 0.5);
     }
 
     .tab-count-badge {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(253, 230, 138, 0.25);
+      color: var(--text-cream);
       font-size: 0.7rem;
       font-family: var(--font-mono);
       padding: 0.1rem 0.45rem;
@@ -344,6 +382,8 @@
       margin: 0 auto;
       width: 100%;
       flex: 1;
+      position: relative;
+      z-index: 2;
     }
 
     .tab-pane {
@@ -369,10 +409,11 @@
       border-radius: var(--radius-lg);
       padding: 1.8rem;
       box-shadow: var(--shadow-card);
-      transition: border-color 0.3s ease;
+      transition: all 0.3s ease;
     }
     .card:hover {
-      border-color: rgba(56, 189, 248, 0.35);
+      border-color: rgba(192, 132, 252, 0.45);
+      box-shadow: 0 16px 40px -10px rgba(6, 4, 15, 0.8), 0 0 25px -5px rgba(139, 92, 246, 0.25);
     }
 
     .card-header {
@@ -388,7 +429,7 @@
       font-family: var(--font-heading);
       font-size: 1.25rem;
       font-weight: 700;
-      color: #f1f5f9;
+      color: var(--text-main);
       display: flex;
       align-items: center;
       gap: 0.6rem;
@@ -440,7 +481,7 @@
 
     select, input[type="text"], input[type="date"] {
       width: 100%;
-      background: #090e1b;
+      background: #110d24;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
       padding: 0.85rem 1rem;
@@ -452,15 +493,15 @@
 
     select:focus, input:focus {
       outline: none;
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-blueberry);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
     }
 
     .swap-btn {
       margin-top: 1.5rem;
-      background: rgba(30, 41, 59, 0.8);
+      background: rgba(42, 28, 84, 0.8);
       border: 1px solid var(--border-subtle);
-      color: var(--accent-cyan);
+      color: var(--accent-soda);
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -471,14 +512,15 @@
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .swap-btn:hover {
-      background: var(--accent-cyan);
-      color: #070b14;
+      background: var(--accent-blueberry);
+      color: #ffffff;
       transform: rotate(180deg) scale(1.1);
+      box-shadow: 0 0 15px var(--accent-blueberry-glow);
     }
 
     .btn-primary {
       width: 100%;
-      background: linear-gradient(135deg, #0284c7, #2563eb);
+      background: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #06b6d4 100%);
       color: #ffffff;
       border: none;
       padding: 1rem 1.5rem;
@@ -492,13 +534,13 @@
       justify-content: center;
       gap: 0.6rem;
       transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 6px 22px rgba(124, 58, 237, 0.4);
       margin-top: 0.5rem;
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(2, 132, 199, 0.55);
-      filter: brightness(1.1);
+      box-shadow: 0 8px 28px rgba(124, 58, 237, 0.6);
+      filter: brightness(1.12);
     }
     .btn-primary:active {
       transform: translateY(0);
@@ -506,8 +548,8 @@
 
     /* Dijkstra Result Display */
     .dijkstra-result-card {
-      background: linear-gradient(145deg, rgba(14, 23, 42, 0.95), rgba(7, 11, 22, 0.95));
-      border: 1px solid rgba(56, 189, 248, 0.35);
+      background: linear-gradient(145deg, rgba(28, 18, 58, 0.95), rgba(16, 11, 36, 0.95));
+      border: 1px solid rgba(167, 139, 250, 0.35);
       border-radius: var(--radius-lg);
       padding: 1.6rem;
       position: relative;
@@ -522,7 +564,7 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #38bdf8, #6366f1, #10b981);
+      background: linear-gradient(90deg, #c084fc, #67e8f9, #fde68a);
     }
 
     .route-telemetry-badge {
@@ -560,8 +602,8 @@
       width: 58px;
       height: 58px;
       border-radius: 16px;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 2px solid var(--accent-cyan);
+      background: linear-gradient(135deg, #2a1b54, #181036);
+      border: 2px solid var(--accent-blueberry);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -569,19 +611,19 @@
       font-weight: 800;
       font-size: 1.15rem;
       color: #ffffff;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+      box-shadow: 0 0 18px rgba(139, 92, 246, 0.35);
     }
 
     .node-city {
       font-size: 0.8rem;
-      color: var(--text-muted);
+      color: var(--text-cream);
       font-weight: 500;
     }
 
     .path-connector {
       flex: 1;
       height: 3px;
-      background: linear-gradient(90deg, var(--accent-cyan), #6366f1);
+      background: linear-gradient(90deg, var(--accent-blueberry), var(--accent-soda));
       position: relative;
       margin: 0 -0.5rem;
       z-index: 1;
@@ -592,14 +634,14 @@
       top: -24px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--accent-cyan);
+      background: rgba(28, 18, 58, 0.95);
+      border: 1px solid var(--accent-soda);
       padding: 0.15rem 0.6rem;
       border-radius: var(--radius-full);
       font-size: 0.7rem;
       font-family: var(--font-mono);
       font-weight: 700;
-      color: var(--accent-cyan);
+      color: var(--accent-soda);
       white-space: nowrap;
     }
 
@@ -629,9 +671,9 @@
 
     .savings-pill {
       font-size: 0.75rem;
-      background: rgba(52, 211, 153, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(52, 211, 153, 0.3);
+      background: rgba(6, 182, 212, 0.15);
+      color: #22d3ee;
+      border: 1px solid rgba(6, 182, 212, 0.3);
       padding: 0.2rem 0.5rem;
       border-radius: var(--radius-full);
       margin-top: 0.2rem;
@@ -652,12 +694,12 @@
     }
 
     .fuselage-card {
-      background: linear-gradient(180deg, #090e1b 0%, #060913 100%);
+      background: linear-gradient(180deg, #181135 0%, #0d091e 100%);
       border: 1px solid var(--border-subtle);
       border-radius: 40px;
       padding: 2.5rem 1.5rem;
       position: relative;
-      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6), var(--shadow-card);
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.65), var(--shadow-card);
     }
 
     /* Cockpit Nosecone */
@@ -672,7 +714,7 @@
       width: 140px;
       height: 60px;
       margin: 0 auto;
-      background: linear-gradient(180deg, #1e293b, #0f172a);
+      background: linear-gradient(180deg, #2a1c58, #181038);
       border: 2px solid var(--border-subtle);
       border-bottom: none;
       border-radius: 70px 70px 0 0;
@@ -686,8 +728,8 @@
     .cockpit-window {
       width: 32px;
       height: 18px;
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(15, 23, 42, 0.9));
-      border: 1px solid var(--accent-cyan);
+      background: linear-gradient(135deg, rgba(103, 232, 249, 0.4), rgba(42, 28, 84, 0.9));
+      border: 1px solid var(--accent-soda);
       border-radius: 12px 12px 3px 3px;
     }
 
@@ -707,9 +749,9 @@
       justify-content: space-between;
       padding: 0.6rem 1rem;
       margin: 1rem 0;
-      background: rgba(245, 158, 11, 0.08);
-      border-top: 1px dashed rgba(245, 158, 11, 0.3);
-      border-bottom: 1px dashed rgba(245, 158, 11, 0.3);
+      background: rgba(251, 191, 36, 0.08);
+      border-top: 1px dashed rgba(251, 191, 36, 0.3);
+      border-bottom: 1px dashed rgba(251, 191, 36, 0.3);
       border-radius: var(--radius-sm);
       font-size: 0.75rem;
       color: var(--accent-gold);
@@ -726,7 +768,7 @@
       gap: 1.2rem;
       margin-bottom: 1.5rem;
       padding: 0.75rem 1rem;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(28, 18, 58, 0.6);
       border-radius: var(--radius-md);
       border: 1px solid var(--border-subtle);
       font-size: 0.8rem;
@@ -788,32 +830,32 @@
 
     .seat-card-btn:hover:not(.booked) {
       background: var(--seat-avail-hover);
-      border-color: var(--accent-cyan);
+      border-color: var(--accent-soda);
       transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 12px rgba(56, 189, 248, 0.25);
+      box-shadow: 0 6px 14px rgba(103, 232, 249, 0.3);
     }
 
     .seat-card-btn.selected {
       background: var(--seat-selected) !important;
-      border-color: #34d399 !important;
-      color: #060913 !important;
+      border-color: #67e8f9 !important;
+      color: #0c081a !important;
       font-weight: 800;
       transform: scale(1.08);
-      box-shadow: 0 0 16px var(--seat-selected-glow) !important;
+      box-shadow: 0 0 18px var(--seat-selected-glow) !important;
     }
 
     .seat-card-btn.first-class {
-      border-color: rgba(245, 158, 11, 0.5);
-      background: linear-gradient(135deg, #1e293b, #1e1b18);
+      border-color: rgba(251, 191, 36, 0.5);
+      background: linear-gradient(135deg, #2c1f4e, #2a1f1a);
     }
     .seat-card-btn.first-class:hover:not(.booked) {
       border-color: var(--accent-gold);
     }
 
     .seat-card-btn.booked {
-      background: #2a1215 !important;
-      border-color: rgba(239, 68, 68, 0.4) !important;
-      color: #f87171 !important;
+      background: #2d101a !important;
+      border-color: rgba(244, 63, 94, 0.4) !important;
+      color: #fda4af !important;
       cursor: not-allowed;
       opacity: 0.65;
       text-decoration: line-through;
@@ -833,8 +875,8 @@
     }
 
     .chosen-seat-banner {
-      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(99, 102, 241, 0.15));
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(6, 182, 212, 0.15));
+      border: 1px solid rgba(167, 139, 250, 0.35);
       border-radius: var(--radius-md);
       padding: 1.2rem;
       display: flex;
@@ -846,7 +888,7 @@
       font-family: var(--font-heading);
       font-size: 2rem;
       font-weight: 800;
-      color: var(--accent-cyan);
+      color: var(--accent-cream);
     }
 
     .fare-breakdown-list {
@@ -877,7 +919,7 @@
        ------------------------------------------------------------- */
     .radar-container {
       position: relative;
-      background: #040711;
+      background: #080514;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-subtle);
       overflow: hidden;
@@ -895,7 +937,7 @@
       position: absolute;
       top: 1.2rem;
       left: 1.2rem;
-      background: rgba(6, 9, 19, 0.75);
+      background: rgba(14, 9, 30, 0.8);
       backdrop-filter: blur(10px);
       border: 1px solid var(--border-subtle);
       padding: 0.6rem 1rem;
@@ -923,8 +965,8 @@
     .bookings-table th {
       text-align: left;
       padding: 0.9rem 1rem;
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-muted);
+      background: rgba(28, 18, 58, 0.9);
+      color: var(--text-cream);
       font-family: var(--font-heading);
       font-size: 0.85rem;
       text-transform: uppercase;
@@ -934,16 +976,16 @@
 
     .bookings-table td {
       padding: 1rem;
-      border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+      border-bottom: 1px solid rgba(167, 139, 250, 0.2);
       color: var(--text-main);
     }
 
     .bookings-table tr:hover td {
-      background: rgba(30, 41, 59, 0.4);
+      background: rgba(42, 28, 84, 0.4);
     }
 
     .btn-action-sm {
-      background: rgba(30, 41, 59, 0.8);
+      background: rgba(42, 28, 84, 0.8);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
       padding: 0.35rem 0.8rem;
@@ -954,9 +996,9 @@
       transition: all 0.2s ease;
     }
     .btn-action-sm:hover {
-      background: var(--accent-cyan);
-      color: #070b14;
-      border-color: var(--accent-cyan);
+      background: var(--accent-blueberry);
+      color: #ffffff;
+      border-color: var(--accent-blueberry);
     }
     .btn-action-sm.danger:hover {
       background: #ef4444;
@@ -970,7 +1012,7 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(4, 7, 17, 0.85);
+      background: rgba(8, 5, 18, 0.88);
       backdrop-filter: blur(12px);
       z-index: 200;
       display: flex;
@@ -987,8 +1029,8 @@
     }
 
     .boarding-pass-card {
-      background: #ffffff;
-      color: #0f172a;
+      background: #fffef9;
+      color: #1e1442;
       border-radius: 24px;
       max-width: 680px;
       width: 100%;
@@ -1004,7 +1046,7 @@
     }
 
     .pass-header {
-      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #2563eb 100%);
       color: #ffffff;
       padding: 1.4rem 1.8rem;
       display: flex;
@@ -1036,12 +1078,12 @@
       font-family: var(--font-heading);
       font-size: 2.5rem;
       font-weight: 800;
-      color: #0f172a;
+      color: #1e1442;
       line-height: 1;
     }
     .pass-airport-name {
       font-size: 0.8rem;
-      color: #64748b;
+      color: #7c6f96;
       margin-top: 0.25rem;
     }
 
@@ -1051,14 +1093,15 @@
       gap: 1.2rem;
       margin-bottom: 1.6rem;
       padding: 1.2rem;
-      background: #f8fafc;
+      background: #fbf7ff;
+      border: 1px solid #ede4ff;
       border-radius: 14px;
     }
 
     .pass-info-label {
       font-size: 0.7rem;
       text-transform: uppercase;
-      color: #94a3b8;
+      color: #9382b6;
       font-weight: 600;
       margin-bottom: 0.2rem;
     }
@@ -1066,14 +1109,14 @@
       font-family: var(--font-heading);
       font-weight: 700;
       font-size: 1.1rem;
-      color: #0f172a;
+      color: #1e1442;
     }
 
     .pass-perforated-divider {
       position: relative;
       height: 20px;
       margin: 1.2rem -1.8rem;
-      border-top: 2px dashed #cbd5e1;
+      border-top: 2px dashed #d8b4fe;
     }
     .pass-perforated-divider::before,
     .pass-perforated-divider::after {
@@ -1083,7 +1126,7 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: rgba(4, 7, 17, 0.85);
+      background: rgba(8, 5, 18, 0.88);
     }
     .pass-perforated-divider::before { left: -12px; }
     .pass-perforated-divider::after { right: -12px; }
@@ -1103,7 +1146,7 @@
     .qr-box {
       width: 64px;
       height: 64px;
-      background: #0f172a;
+      background: #1e1442;
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -1115,8 +1158,8 @@
       display: flex;
       gap: 0.8rem;
       padding: 1.2rem 1.8rem;
-      background: #f1f5f9;
-      border-top: 1px solid #e2e8f0;
+      background: #faf5ff;
+      border-top: 1px solid #ede4ff;
     }
 
     /* -------------------------------------------------------------
@@ -1134,10 +1177,10 @@
     }
 
     .toast {
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(28, 18, 58, 0.96);
       backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
-      border-left: 4px solid var(--accent-cyan);
+      border-left: 4px solid var(--accent-blueberry);
       color: var(--text-main);
       padding: 0.9rem 1.4rem;
       border-radius: var(--radius-md);
@@ -1169,6 +1212,16 @@
 </head>
 <body>
 
+  <!-- Ambient Blueberry Cream Soda Floating Fizz -->
+  <div class="soda-fizz-bg" aria-hidden="true">
+    <div class="soda-bubble" style="left: 8%; width: 14px; height: 14px; animation-duration: 9s; animation-delay: 0s;"></div>
+    <div class="soda-bubble" style="left: 22%; width: 22px; height: 22px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="soda-bubble" style="left: 40%; width: 10px; height: 10px; animation-duration: 7s; animation-delay: 1s;"></div>
+    <div class="soda-bubble" style="left: 58%; width: 18px; height: 18px; animation-duration: 11s; animation-delay: 3s;"></div>
+    <div class="soda-bubble" style="left: 75%; width: 12px; height: 12px; animation-duration: 8s; animation-delay: 0.5s;"></div>
+    <div class="soda-bubble" style="left: 90%; width: 16px; height: 16px; animation-duration: 10s; animation-delay: 4s;"></div>
+  </div>
+
   <!-- Top Navigation Header -->
   <header class="navbar">
     <a href="#" class="brand">
@@ -1189,7 +1242,7 @@
         <span id="backendStatusText">Crow Engine: Connecting...</span>
       </div>
       <div class="status-pill" id="sqlitePill" title="SQLite Database Persistence">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         <span>airline.db</span>
       </div>
     </div>
@@ -1257,7 +1310,7 @@
           <div class="card-header">
             <div>
               <div class="card-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
                 Find Optimal Flight Route
               </div>
               <div class="card-subtitle">Graph Dijkstra computation for lowest fare path</div>
@@ -1321,7 +1374,7 @@
           </div>
 
           <div id="routeLoading" style="display: none; text-align: center; padding: 3rem 0;">
-            <svg style="animation: spin 1s linear infinite; margin: 0 auto 1rem;" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <svg style="animation: spin 1s linear infinite; margin: 0 auto 1rem;" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
             <div style="font-family: var(--font-mono); color: var(--accent-cyan);">Running Dijkstra on Flight Graph...</div>
           </div>
 
@@ -1439,7 +1492,7 @@
             <div class="card-header">
               <div>
                 <div class="card-title">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   Passenger & Reservation
                 </div>
                 <div class="card-subtitle">Collision-safe SQLite atomic transaction</div>
@@ -1525,7 +1578,7 @@
         <div class="card-header" style="margin-bottom: 0.8rem;">
           <div>
             <div class="card-title">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/><circle cx="12" cy="12" r="4"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/><circle cx="12" cy="12" r="4"/></svg>
               Air Traffic & Route Graph Radar
             </div>
             <div class="card-subtitle">Real-time simulation of flight network graph and aircraft navigation</div>
@@ -1556,7 +1609,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               Confirmed Reservations Database
             </div>
             <div class="card-subtitle">Live records synced with C++ SQLite bookings table</div>
@@ -2064,8 +2117,8 @@
       }
       isServerLive = false;
       dot.className = 'status-dot';
-      dot.style.background = '#38bdf8';
-      dot.style.boxShadow = '0 0 10px #38bdf8';
+      dot.style.background = '#67e8f9';
+      dot.style.boxShadow = '0 0 10px #67e8f9';
       text.innerText = 'SkyRoute Edge Engine (Active)';
     }
 
@@ -2588,7 +2641,7 @@
       canvas.height = window.innerHeight;
 
       const particles = [];
-      const colors = ['#38bdf8', '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#ffffff'];
+      const colors = ['#8b5cf6', '#c084fc', '#67e8f9', '#38bdf8', '#fde68a', '#f472b6', '#ffffff'];
 
       for (let i = 0; i < 90; i++) {
         particles.push({
@@ -2704,7 +2757,7 @@
         const maxR = Math.min(w, h) * 0.46;
 
         // Radar background grid & circles
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.16)';
         ctx.lineWidth = 1;
         for (let r = maxR * 0.25; r <= maxR; r += maxR * 0.25) {
           ctx.beginPath();
@@ -2728,8 +2781,8 @@
         ctx.arc(cx, cy, maxR, this.angle, this.angle + 0.45);
         ctx.closePath();
         const beamGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
-        beamGrad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
-        beamGrad.addColorStop(1, 'rgba(56, 189, 248, 0.01)');
+        beamGrad.addColorStop(0, 'rgba(139, 92, 246, 0.35)');
+        beamGrad.addColorStop(1, 'rgba(103, 232, 249, 0.02)');
         ctx.fillStyle = beamGrad;
         ctx.fill();
         ctx.restore();
@@ -2754,7 +2807,7 @@
           ctx.beginPath();
           ctx.moveTo(x1, y1);
           ctx.lineTo(x2, y2);
-          ctx.strokeStyle = isHighlighted ? 'rgba(52, 211, 153, 0.85)' : 'rgba(56, 189, 248, 0.25)';
+          ctx.strokeStyle = isHighlighted ? 'rgba(103, 232, 249, 0.95)' : 'rgba(139, 92, 246, 0.35)';
           ctx.lineWidth = isHighlighted ? 3 : 1.5;
           ctx.setLineDash(isHighlighted ? [8, 4] : [4, 4]);
           ctx.stroke();
@@ -2764,7 +2817,7 @@
           const midX = (x1 + x2) / 2;
           const midY = (y1 + y2) / 2;
           ctx.font = '600 11px JetBrains Mono';
-          ctx.fillStyle = isHighlighted ? '#34d399' : '#94a3b8';
+          ctx.fillStyle = isHighlighted ? '#67e8f9' : '#c4b5fd';
           ctx.fillText(`${e.f} (${e.price})`, midX + 5, midY - 5);
         });
 
@@ -2779,8 +2832,8 @@
           // Airplane icon / blip
           ctx.beginPath();
           ctx.arc(ax, ay, 4, 0, Math.PI * 2);
-          ctx.fillStyle = '#38bdf8';
-          ctx.shadowColor = '#38bdf8';
+          ctx.fillStyle = '#67e8f9';
+          ctx.shadowColor = '#67e8f9';
           ctx.shadowBlur = 10;
           ctx.fill();
           ctx.shadowBlur = 0;
@@ -2798,21 +2851,21 @@
 
           ctx.beginPath();
           ctx.arc(nx, ny, 10, 0, Math.PI * 2);
-          ctx.fillStyle = '#0f172a';
-          ctx.strokeStyle = '#38bdf8';
+          ctx.fillStyle = '#140e2b';
+          ctx.strokeStyle = '#c084fc';
           ctx.lineWidth = 2.5;
-          ctx.shadowColor = '#38bdf8';
+          ctx.shadowColor = '#c084fc';
           ctx.shadowBlur = 12;
           ctx.fill();
           ctx.stroke();
           ctx.shadowBlur = 0;
 
           ctx.font = '800 13px Outfit';
-          ctx.fillStyle = '#ffffff';
+          ctx.fillStyle = '#fef3c7';
           ctx.fillText(k, nx - 12, ny - 16);
 
           ctx.font = '500 10px Plus Jakarta Sans';
-          ctx.fillStyle = '#94a3b8';
+          ctx.fillStyle = '#c4b5fd';
           ctx.fillText(n.name, nx - 12, ny + 24);
         });
       }
