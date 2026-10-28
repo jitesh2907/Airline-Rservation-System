@@ -1,11 +1,11 @@
 # SkyRoute Neo — Airline Reservation System & Dijkstra Flight Optimizer
 
-[![Live Demo](https://img.shields.io/badge/Live%20Website-Demo%20Online-38bdf8?style=for-the-badge&logo=google-chrome&logoColor=white)](https://jitesh-ss.github.io/Airline-Rservation-System/)
-[![GitHub Actions Pages](https://img.shields.io/badge/GitHub%20Pages-Automated%20CI%2FCD-10b981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/jitesh-ss/Airline-Rservation-System/actions)
+[![Live Demo](https://img.shields.io/badge/Live%20Website-Demo%20Online-38bdf8?style=for-the-badge&logo=google-chrome&logoColor=white)](https://jitesh2907.github.io/Airline-Rservation-System/)
+[![GitHub Actions Pages](https://img.shields.io/badge/GitHub%20Pages-Automated%20CI%2FCD-10b981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/jitesh2907/Airline-Rservation-System/actions)
 
 SkyRoute Neo is a high-performance airline reservation and routing optimization platform powered by **C++17**, **Crow Microframework**, **SQLite3**, and a state-of-the-art interactive web frontend.
 
-> **Live Web Application**: [https://jitesh-ss.github.io/Airline-Rservation-System/](https://jitesh-ss.github.io/Airline-Rservation-System/)
+> **Live Web Application**: [https://jitesh2907.github.io/Airline-Rservation-System/](https://jitesh2907.github.io/Airline-Rservation-System/)
 
 ---
 
@@ -89,7 +89,7 @@ graph TD
 ### Option 1: Live Online (GitHub Pages / Vercel)
 The project is configured for automated zero-config deployment:
 - **GitHub Pages**: Push to `main` branch. The automated workflow in [`.github/workflows/deploy.yml`](file:///.github/workflows/deploy.yml) automatically deploys to:
-  `https://jitesh-ss.github.io/Airline-Rservation-System/`
+  `https://jitesh2907.github.io/Airline-Rservation-System/`
 - **Vercel / Netlify**: Run `npx vercel` or import this repository on Vercel.
 
 ### Option 2: Instant Local Web Server (Node.js)
