@@ -9728,12 +9728,16 @@ namespace crow
 
             auto self = this->shared_from_this();
             task_id_ = task_timer_.schedule([self] {
-                if (!self->adaptor_.is_open())
-                {
-                    return;
-                }
-                self->adaptor_.shutdown_readwrite();
-                self->adaptor_.close();
+                asio::post(self->adaptor_.raw_socket().get_executor(), [self] {
+                    if (!self->adaptor_.is_open())
+                    {
+                        return;
+                    }
+                    error_code ec;
+                    self->adaptor_.raw_socket().cancel(ec);
+                    self->adaptor_.shutdown_readwrite();
+                    self->adaptor_.close();
+                });
             });
             CROW_LOG_DEBUG << this << " timer added: " << &task_timer_ << ' ' << task_id_;
         }

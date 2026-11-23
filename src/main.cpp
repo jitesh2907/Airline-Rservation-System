@@ -484,6 +484,7 @@ int main() {
     std::cout << "Port: 18080 | CORS: Enabled (*)\n";
     std::cout << "====================================================\n";
 
+    app.timeout(25);
     app.loglevel(crow::LogLevel::Warning);
     app.port(18080).run();
 
