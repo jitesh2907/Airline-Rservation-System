@@ -1,11 +1,11 @@
-
 cmake_minimum_required(VERSION 3.15)
 project(airline_system CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(-fpermissive -Wno-template-body)
+add_compile_options(-fpermissive -Wno-template-body -Wno-deprecated-literal-operator)
+add_definitions(-DASIO_STANDALONE)
 
 find_package(SQLite3 REQUIRED)
 

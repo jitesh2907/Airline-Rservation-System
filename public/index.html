@@ -1942,7 +1942,7 @@
        ------------------------------------------------------------- */ -->
   <script>
     // --- Application State ---
-    let API_BASE = localStorage.getItem('skyroute_server_url') || (window.location.protocol === 'file:' ? 'http://127.0.0.1:18080' : window.location.origin);
+    let API_BASE = localStorage.getItem('skyroute_server_url') || 'http://127.0.0.1:18080';
     let isServerLive = false;
     let audioMuted = false;
     let selectedSeat = null;
@@ -2430,15 +2430,24 @@
         targetPane.classList.add('active');
       }
 
-      // Update button active state
-      event?.currentTarget?.classList?.add('active');
+      // Update corresponding tab button active state
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.getAttribute('onclick')?.includes(`'${tabId}'`)) {
+          btn.classList.add('active');
+        }
+      });
 
       if (tabId === 'cabin') {
         loadSeats();
       } else if (tabId === 'bookings') {
         loadBookingsList();
       } else if (tabId === 'radar') {
-        setTimeout(() => radarSim.resize(), 50);
+        // Resize after tab becomes visible so canvas gets real clientWidth/Height
+        setTimeout(() => {
+          if (window.radarSim) {
+            window.radarSim.resize();
+          }
+        }, 50);
       }
     }
 
@@ -2583,8 +2592,15 @@
       if (origin === 'DEL' && dest === 'BOM') currentFlight = 'AI101';
       else if (origin === 'BOM' && dest === 'BLR') currentFlight = '6E202';
       else if (origin === 'DEL' && dest === 'BLR') currentFlight = 'AI101'; // Can choose segment 1
+      else if (origin === 'BOM' && dest === 'DEL') currentFlight = 'AI102';
+      else if (origin === 'BLR' && dest === 'BOM') currentFlight = '6E203';
+      else if (origin === 'BLR' && dest === 'DEL') currentFlight = '6E203';
 
-      document.getElementById('cabinFlightSelect').value = currentFlight;
+      const select = document.getElementById('cabinFlightSelect');
+      if (select) {
+        select.value = currentFlight;
+        onCabinFlightChanged();
+      }
       switchTab('cabin');
     }
 
@@ -2819,7 +2835,7 @@
         await loadSeats();
       } finally {
         bookBtn.disabled = false;
-        bookBtn.innerHTML = `<polyline points="20 6 9 17 4 12"></polyline> Confirm Seat & Generate Boarding Pass`;
+        bookBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Confirm Seat & Generate Boarding Pass`;
       }
     }
 
@@ -3048,11 +3064,18 @@
         const { ctx, canvas } = this;
         const w = canvas.width;
         const h = canvas.height;
+
+        // Guard: skip draw if canvas has no size (hidden tab = 0x0 = infinite loop)
+        if (!w || !h) return;
+
         ctx.clearRect(0, 0, w, h);
 
         const cx = w / 2;
         const cy = h / 2;
         const maxR = Math.min(w, h) * 0.46;
+
+        // Guard: skip if maxR is 0 (prevents r += 0 infinite loop)
+        if (maxR <= 0) return;
 
         // Radar background grid & circles
         ctx.strokeStyle = 'rgba(220, 38, 38, 0.16)';
@@ -3180,7 +3203,7 @@
     }
 
     // --- Initialization ---
-    window.onload = async () => {
+    window.onload = () => {
       // Set today's date in picker
       const datePicker = document.getElementById('travelDate');
       if (datePicker) {
@@ -3189,20 +3212,22 @@
         datePicker.min = today;
       }
 
-      // Check backend health
-      await checkServerHealth();
-      setInterval(checkServerHealth, 5000);
+      // Initialize radar AFTER a short delay so canvas has real dimensions
+      // (canvas is hidden on load → clientWidth=0 → maxR=0 → infinite loop if called now)
+      setTimeout(() => {
+        window.radarSim = new RadarSimulator();
+      }, 100);
 
-      // Load initial seat layout
-      await loadSeats();
+      // Defer ALL network calls — page must render first, then fetch
+      setTimeout(async () => {
+        await checkServerHealth();
+        await loadSeats();
+        await loadBookingsList();
+        // Start periodic health-check heartbeat
+        setInterval(checkServerHealth, 5000);
+      }, 300);
 
-      // Load initial bookings
-      await loadBookingsList();
-
-      // Initialize radar
-      window.radarSim = new RadarSimulator();
-
-      // Default run Dijkstra route
+      // Run local in-browser Dijkstra (no network needed)
       computeDijkstraRoute();
     };
   </script>

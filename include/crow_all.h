@@ -9048,6 +9048,7 @@ namespace crow
 
             void cancel(identifier_type id)
             {
+                std::lock_guard<std::mutex> lock(timer_mutex_);
                 tasks_.erase(id);
                 CROW_LOG_DEBUG << "task_timer cancelled: " << this << ' ' << id;
             }
@@ -9061,6 +9062,7 @@ namespace crow
             /// has been successfully executed.
             identifier_type schedule(const task_type& task)
             {
+                std::lock_guard<std::mutex> lock(timer_mutex_);
                 tasks_.insert(
                   {++highest_id_,
                    {clock_type::now() + std::chrono::seconds(get_default_timeout()),
@@ -9080,6 +9082,7 @@ namespace crow
             /// has been successfully executed.
             identifier_type schedule(const task_type& task, std::uint8_t timeout)
             {
+                std::lock_guard<std::mutex> lock(timer_mutex_);
                 tasks_.insert({++highest_id_,
                                {clock_type::now() + std::chrono::seconds(timeout), task}});
                 CROW_LOG_DEBUG << "task_timer scheduled: " << this << ' ' << highest_id_;
@@ -9100,22 +9103,30 @@ namespace crow
             {
                 time_type current_time = clock_type::now();
                 std::vector<identifier_type> finished_tasks;
-
-                for (const auto& task : tasks_)
+                std::vector<task_type> to_execute;
                 {
-                    if (task.second.first < current_time)
+                    std::lock_guard<std::mutex> lock(timer_mutex_);
+                    for (const auto& task : tasks_)
                     {
-                        (task.second.second)();
-                        finished_tasks.push_back(task.first);
-                        CROW_LOG_DEBUG << "task_timer called: " << this << ' ' << task.first;
+                        if (task.second.first < current_time)
+                        {
+                            to_execute.push_back(task.second.second);
+                            finished_tasks.push_back(task.first);
+                            CROW_LOG_DEBUG << "task_timer called: " << this << ' ' << task.first;
+                        }
                     }
+
+                    for (const auto& task : finished_tasks)
+                        tasks_.erase(task);
+
+                    // If no task is currently scheduled, reset the issued ids back to 0.
+                    if (tasks_.empty()) highest_id_ = 0;
                 }
 
-                for (const auto& task : finished_tasks)
-                    tasks_.erase(task);
-
-                // If no task is currently scheduled, reset the issued ids back to 0.
-                if (tasks_.empty()) highest_id_ = 0;
+                for (const auto& task : to_execute)
+                {
+                    task();
+                }
             }
 
             void tick_handler(const error_code& ec)
@@ -9130,6 +9141,7 @@ namespace crow
             }
 
         private:
+            std::mutex timer_mutex_;
             std::uint8_t default_timeout_{5};
             asio::io_service& io_service_;
             asio::basic_waitable_timer<clock_type> timer_;

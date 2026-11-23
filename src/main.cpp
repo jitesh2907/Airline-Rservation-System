@@ -6,6 +6,11 @@
 #include <unordered_map>
 #include <queue>
 #include <algorithm>
+#include <csignal>
+#include <mutex>
+
+// Thread-safe mutex for SQLite database operations
+static std::mutex g_db_mutex;
 
 struct Edge {
     std::string to_airport;
@@ -19,6 +24,7 @@ struct RouteResult {
     std::vector<std::string> flight_ids;
 };
 
+// C++ Graph Dijkstra Shortest Path Engine
 class FlightGraph {
 public:
     std::unordered_map<std::string, std::vector<Edge>> adj;
@@ -28,6 +34,10 @@ public:
     }
 
     RouteResult findCheapestRoute(const std::string& start, const std::string& target) {
+        if (start == target) {
+            return {0.0, {start}, {}};
+        }
+
         using CostNode = std::pair<double, std::string>;
         std::priority_queue<CostNode, std::vector<CostNode>, std::greater<CostNode>> pq;
         std::unordered_map<std::string, double> dist;
@@ -43,7 +53,10 @@ public:
             if (u == target) break;
             if (cost > dist[u]) continue;
 
-            for (const auto& edge : adj[u]) {
+            auto it = adj.find(u);
+            if (it == adj.end()) continue;
+
+            for (const auto& edge : it->second) {
                 double new_cost = cost + edge.price;
                 if (!dist.count(edge.to_airport) || new_cost < dist[edge.to_airport]) {
                     dist[edge.to_airport] = new_cost;
@@ -80,30 +93,42 @@ void initDatabase(sqlite3* db) {
         "  UNIQUE(flight_id, seat_number)"
         ");";
     char* err = nullptr;
+    std::lock_guard<std::mutex> lock(g_db_mutex);
     sqlite3_exec(db, schema, nullptr, nullptr, &err);
     if (err) {
-        std::cerr << "SQLite error: " << err << "\n";
+        std::cerr << "SQLite initialization error: " << err << "\n";
         sqlite3_free(err);
     }
 }
 
-inline void add_cors(crow::response& res) {
+inline void add_cors_headers(crow::response& res) {
     res.add_header("Access-Control-Allow-Origin", "*");
-    res.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    res.add_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+    res.add_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, PUT");
+    res.add_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With");
 }
 
 int main() {
-    sqlite3* db;
-    if (sqlite3_open("airline.db", &db)) {
-        std::cerr << "Failed to open SQLite database.\n";
+    // Suppress SIGPIPE so client disconnects don't terminate the process
+    std::signal(SIGPIPE, SIG_IGN);
+
+    sqlite3* db = nullptr;
+    int rc = sqlite3_open_v2("airline.db", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to open SQLite database: " << sqlite3_errmsg(db) << "\n";
         return 1;
     }
     initDatabase(db);
 
-    crow::SimpleApp app;
-    FlightGraph graph;
+    // Initialize Crow with built-in CORS middleware
+    crow::App<crow::CORSHandler> app;
+    auto& cors = app.get_middleware<crow::CORSHandler>();
+    cors.global()
+        .headers("Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With")
+        .methods(crow::HTTPMethod::Post, crow::HTTPMethod::Get, crow::HTTPMethod::Delete, crow::HTTPMethod::Options)
+        .origin("*");
 
+    FlightGraph graph;
+    // Network Graph: Major Indian Metro Air Hubs (DEL, BOM, BLR)
     graph.addFlight("DEL", "BOM", "AI101", 4500.0);
     graph.addFlight("BOM", "BLR", "6E202", 3200.0);
     graph.addFlight("DEL", "BLR", "UK808", 8500.0);
@@ -111,40 +136,69 @@ int main() {
     graph.addFlight("BLR", "BOM", "6E203", 3200.0);
     graph.addFlight("BLR", "DEL", "UK809", 8500.0);
 
-    // 1. Serve Frontend
-    CROW_ROUTE(app, "/")([](const crow::request&, crow::response& res) {
-        res.set_static_file_info("public/index.html");
-        res.end();
-    });
-
-    CROW_ROUTE(app, "/hero.jpg")([](const crow::request&, crow::response& res) {
-        res.set_static_file_info("public/hero.jpg");
-        res.end();
-    });
-
-    // Preflight OPTIONS handlers
+    // Explicit OPTIONS routes to ensure every browser preflight passes cleanly
     CROW_ROUTE(app, "/api/<path>").methods(crow::HTTPMethod::Options)
     ([](std::string) {
         crow::response res(204);
-        add_cors(res);
+        add_cors_headers(res);
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/book").methods(crow::HTTPMethod::Options)
+    ([]() {
+        crow::response res(204);
+        add_cors_headers(res);
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/bookings").methods(crow::HTTPMethod::Options)
+    ([]() {
+        crow::response res(204);
+        add_cors_headers(res);
         return res;
     });
 
     CROW_ROUTE(app, "/api/bookings/<int>").methods(crow::HTTPMethod::Options)
     ([](int) {
         crow::response res(204);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
-    // 2. Health Check
+    CROW_ROUTE(app, "/api/flights").methods(crow::HTTPMethod::Options)
+    ([]() {
+        crow::response res(204);
+        add_cors_headers(res);
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/flights/optimize").methods(crow::HTTPMethod::Options)
+    ([]() {
+        crow::response res(204);
+        add_cors_headers(res);
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/flights/<string>/seats").methods(crow::HTTPMethod::Options)
+    ([](std::string) {
+        crow::response res(204);
+        add_cors_headers(res);
+        return res;
+    });
+
+    // 1. Health & Diagnostics Check
     CROW_ROUTE(app, "/api/health")([]() {
-        crow::response res(200, "{\"status\": \"running\", \"engine\": \"Crow C++17\", \"port\": 18080}");
-        add_cors(res);
+        crow::json::wvalue resp;
+        resp["status"] = "running";
+        resp["engine"] = "Crow C++17 (Optimized)";
+        resp["port"] = 18080;
+        resp["database"] = "SQLite3 Thread-Safe";
+        crow::response res(200, resp);
+        add_cors_headers(res);
         return res;
     });
 
-    // 2b. Flight Catalog
+    // 2. Flight Catalog
     CROW_ROUTE(app, "/api/flights")
     ([]() {
         crow::json::wvalue resp = crow::json::wvalue::list();
@@ -228,7 +282,7 @@ int main() {
         resp[5]["aircraft"] = "Boeing 787-9 Dreamliner";
 
         crow::response res(200, resp);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
@@ -240,14 +294,14 @@ int main() {
 
         if (!from || !to) {
             crow::response res(400, "{\"error\": \"Provide both 'from' and 'to' parameters.\"}");
-            add_cors(res);
+            add_cors_headers(res);
             return res;
         }
 
         RouteResult res_route = graph.findCheapestRoute(from, to);
         if (res_route.total_cost < 0) {
             crow::response res(404, "{\"error\": \"No route found.\"}");
-            add_cors(res);
+            add_cors_headers(res);
             return res;
         }
 
@@ -257,30 +311,33 @@ int main() {
         for (size_t i = 0; i < res_route.flight_ids.size(); ++i) resp["flights"][i] = res_route.flight_ids[i];
         
         crow::response res(200, resp);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
     // 4. Get Occupied Seats for a Flight
     CROW_ROUTE(app, "/api/flights/<string>/seats")
     ([db](std::string flight_id) {
-        std::string query = "SELECT seat_number FROM bookings WHERE flight_id = ?;";
-        sqlite3_stmt* stmt;
-
-        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-            crow::response res(500, "{\"error\": \"Failed to query seats.\"}");
-            add_cors(res);
-            return res;
-        }
-
-        sqlite3_bind_text(stmt, 1, flight_id.c_str(), -1, SQLITE_STATIC);
-
         std::vector<std::string> occupied;
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            const unsigned char* seat = sqlite3_column_text(stmt, 0);
-            if (seat) occupied.push_back(reinterpret_cast<const char*>(seat));
+        {
+            std::lock_guard<std::mutex> lock(g_db_mutex);
+            std::string query = "SELECT seat_number FROM bookings WHERE flight_id = ?;";
+            sqlite3_stmt* stmt = nullptr;
+
+            if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+                crow::response res(500, "{\"error\": \"Failed to query seats.\"}");
+                add_cors_headers(res);
+                return res;
+            }
+
+            sqlite3_bind_text(stmt, 1, flight_id.c_str(), -1, SQLITE_STATIC);
+
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                const unsigned char* seat = sqlite3_column_text(stmt, 0);
+                if (seat) occupied.push_back(reinterpret_cast<const char*>(seat));
+            }
+            sqlite3_finalize(stmt);
         }
-        sqlite3_finalize(stmt);
 
         crow::json::wvalue resp = crow::json::wvalue::empty_object();
         resp["occupied_seats"] = crow::json::wvalue::list{};
@@ -288,62 +345,69 @@ int main() {
             resp["occupied_seats"][i] = occupied[i];
         }
         crow::response res(200, resp);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
     // 4b. Get All Bookings
     CROW_ROUTE(app, "/api/bookings")
     ([db]() {
-        std::string query = "SELECT booking_id, flight_id, passenger_name, seat_number, created_at FROM bookings ORDER BY booking_id DESC LIMIT 100;";
-        sqlite3_stmt* stmt;
-
-        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-            crow::response res(500, "{\"error\": \"Failed to query bookings.\"}");
-            add_cors(res);
-            return res;
-        }
-
         crow::json::wvalue resp = crow::json::wvalue::list();
-        int idx = 0;
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            resp[idx]["booking_id"] = sqlite3_column_int(stmt, 0);
-            const unsigned char* f = sqlite3_column_text(stmt, 1);
-            const unsigned char* p = sqlite3_column_text(stmt, 2);
-            const unsigned char* s = sqlite3_column_text(stmt, 3);
-            const unsigned char* c = sqlite3_column_text(stmt, 4);
-            resp[idx]["flight_id"] = f ? reinterpret_cast<const char*>(f) : "";
-            resp[idx]["passenger_name"] = p ? reinterpret_cast<const char*>(p) : "";
-            resp[idx]["seat_number"] = s ? reinterpret_cast<const char*>(s) : "";
-            resp[idx]["created_at"] = c ? reinterpret_cast<const char*>(c) : "";
-            idx++;
+        {
+            std::lock_guard<std::mutex> lock(g_db_mutex);
+            std::string query = "SELECT booking_id, flight_id, passenger_name, seat_number, created_at FROM bookings ORDER BY booking_id DESC LIMIT 100;";
+            sqlite3_stmt* stmt = nullptr;
+
+            if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+                crow::response res(500, "{\"error\": \"Failed to query bookings.\"}");
+                add_cors_headers(res);
+                return res;
+            }
+
+            int idx = 0;
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                resp[idx]["booking_id"] = sqlite3_column_int(stmt, 0);
+                const unsigned char* f = sqlite3_column_text(stmt, 1);
+                const unsigned char* p = sqlite3_column_text(stmt, 2);
+                const unsigned char* s = sqlite3_column_text(stmt, 3);
+                const unsigned char* c = sqlite3_column_text(stmt, 4);
+                resp[idx]["flight_id"] = f ? reinterpret_cast<const char*>(f) : "";
+                resp[idx]["passenger_name"] = p ? reinterpret_cast<const char*>(p) : "";
+                resp[idx]["seat_number"] = s ? reinterpret_cast<const char*>(s) : "";
+                resp[idx]["created_at"] = c ? reinterpret_cast<const char*>(c) : "";
+                idx++;
+            }
+            sqlite3_finalize(stmt);
         }
-        sqlite3_finalize(stmt);
 
         crow::response res(200, resp);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
     // 4c. Cancel Booking
     CROW_ROUTE(app, "/api/bookings/<int>").methods(crow::HTTPMethod::Delete)
     ([db](int booking_id) {
-        std::string del_query = "DELETE FROM bookings WHERE booking_id = ?;";
-        sqlite3_stmt* stmt;
+        int rc = 0;
+        {
+            std::lock_guard<std::mutex> lock(g_db_mutex);
+            std::string del_query = "DELETE FROM bookings WHERE booking_id = ?;";
+            sqlite3_stmt* stmt = nullptr;
 
-        if (sqlite3_prepare_v2(db, del_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-            crow::response res(500, "{\"error\": \"Database error.\"}");
-            add_cors(res);
-            return res;
+            if (sqlite3_prepare_v2(db, del_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+                crow::response res(500, "{\"error\": \"Database error.\"}");
+                add_cors_headers(res);
+                return res;
+            }
+
+            sqlite3_bind_int(stmt, 1, booking_id);
+            rc = sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
         }
-
-        sqlite3_bind_int(stmt, 1, booking_id);
-        int rc = sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
 
         if (rc != SQLITE_DONE) {
             crow::response res(500, "{\"error\": \"Failed to delete booking.\"}");
-            add_cors(res);
+            add_cors_headers(res);
             return res;
         }
 
@@ -351,7 +415,7 @@ int main() {
         resp["status"] = "CANCELLED";
         resp["booking_id"] = booking_id;
         crow::response res(200, resp);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
@@ -360,8 +424,8 @@ int main() {
     ([db](const crow::request& req) {
         auto body = crow::json::load(req.body);
         if (!body || !body.has("flight_id") || !body.has("passenger_name") || !body.has("seat_number")) {
-            crow::response res(400, "{\"error\": \"Invalid JSON payload.\"}");
-            add_cors(res);
+            crow::response res(400, "{\"error\": \"Invalid JSON payload. Provide flight_id, passenger_name, and seat_number.\"}");
+            add_cors_headers(res);
             return res;
         }
 
@@ -369,29 +433,37 @@ int main() {
         std::string name = body["passenger_name"].s();
         std::string seat = body["seat_number"].s();
 
-        std::string insert_query = "INSERT INTO bookings (flight_id, passenger_name, seat_number) VALUES (?, ?, ?);";
-        sqlite3_stmt* stmt;
+        int rc = 0;
+        int new_id = 0;
+        {
+            std::lock_guard<std::mutex> lock(g_db_mutex);
+            std::string insert_query = "INSERT INTO bookings (flight_id, passenger_name, seat_number) VALUES (?, ?, ?);";
+            sqlite3_stmt* stmt = nullptr;
 
-        if (sqlite3_prepare_v2(db, insert_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-            crow::response res(500, "{\"error\": \"Database error.\"}");
-            add_cors(res);
-            return res;
+            if (sqlite3_prepare_v2(db, insert_query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+                crow::response res(500, "{\"error\": \"Database prepare error.\"}");
+                add_cors_headers(res);
+                return res;
+            }
+
+            sqlite3_bind_text(stmt, 1, flight.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 2, name.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 3, seat.c_str(), -1, SQLITE_STATIC);
+
+            rc = sqlite3_step(stmt);
+            if (rc == SQLITE_DONE) {
+                new_id = static_cast<int>(sqlite3_last_insert_rowid(db));
+            }
+            sqlite3_finalize(stmt);
         }
-
-        sqlite3_bind_text(stmt, 1, flight.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 2, name.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 3, seat.c_str(), -1, SQLITE_STATIC);
-
-        int rc = sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
 
         if (rc == SQLITE_CONSTRAINT) {
             crow::response res(409, "{\"error\": \"Seat " + seat + " is already booked on flight " + flight + "!\"}");
-            add_cors(res);
+            add_cors_headers(res);
             return res;
         } else if (rc != SQLITE_DONE) {
-            crow::response res(500, "{\"error\": \"Failed to complete transaction.\"}");
-            add_cors(res);
+            crow::response res(500, "{\"error\": \"Failed to complete booking transaction.\"}");
+            add_cors_headers(res);
             return res;
         }
 
@@ -400,15 +472,24 @@ int main() {
         resp["flight_id"] = flight;
         resp["passenger"] = name;
         resp["seat"] = seat;
+        resp["booking_id"] = new_id;
         crow::response res(201, resp);
-        add_cors(res);
+        add_cors_headers(res);
         return res;
     });
 
-    std::cout << "Starting server on port 18080...\n";
+    std::cout << "====================================================\n";
+    std::cout << "SkyRoute Neo C++17 Crow API Server (Thread-Safe)\n";
+    std::cout << "Dijkstra Engine & SQLite Collision-Safe Ledger Active\n";
+    std::cout << "Port: 18080 | CORS: Enabled (*)\n";
+    std::cout << "====================================================\n";
+
     app.loglevel(crow::LogLevel::Warning);
     app.port(18080).run();
 
-    sqlite3_close(db);
+    {
+        std::lock_guard<std::mutex> lock(g_db_mutex);
+        sqlite3_close(db);
+    }
     return 0;
 }

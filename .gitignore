@@ -1,2 +1,5 @@
 build/
 *.db
+.DS_Store
+*.zip
+
